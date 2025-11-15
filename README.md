@@ -1,6 +1,6 @@
 # Vapourkit
 
-![Version](https://img.shields.io/badge/version-0.9.1-blue)
+![Version](https://img.shields.io/badge/version-0.9.2-blue)
 ![License](https://img.shields.io/badge/license-GPL%203.0-green)
 ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey)
 
