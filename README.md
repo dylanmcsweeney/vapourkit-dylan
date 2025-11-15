@@ -13,7 +13,6 @@
 - **Dual Backend Support**: Supports Nvidia GPUs with TensorRT and AMD/Intel GPUs using DirectML
 - **Real-time Preview**: Realtime preview of the upscale!
 - **Video Comparison Tool**: Built-in side-by-side comparison viewer for input/output videos
-- **TSPANV2 Support**: [TSPANV2](https://github.com/Kim2091/TSPANV2) is a fast & high quality VSR architecture, which provides high quality video upscaling
 
 ### Two Modes
 
