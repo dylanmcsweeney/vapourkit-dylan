@@ -1,6 +1,6 @@
 # Vapourkit
 
-![Version](https://img.shields.io/badge/version-0.8.2-blue)
+![Version](https://img.shields.io/badge/version-0.9.1-blue)
 ![License](https://img.shields.io/badge/license-GPL%203.0-green)
 ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey)
 
@@ -13,7 +13,6 @@
 - **Dual Backend Support**: Supports Nvidia GPUs with TensorRT and AMD/Intel GPUs using DirectML
 - **Real-time Preview**: Realtime preview of the upscale!
 - **Video Comparison Tool**: Built-in side-by-side comparison viewer for input/output videos
-- **TSPANV2 Support**: [TSPANV2](https://github.com/Kim2091/TSPANV2) is a fast & high quality VSR architecture, which provides high quality video upscaling
 
 ### Two Modes
 
