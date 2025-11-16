@@ -31,7 +31,7 @@
 
 ### Advanced Usage (Developer Mode)
 
-See [Advanced Mode](docs/Advanced Mode.md) for more information.
+See [Advanced Mode](https://github.com/Kim2091/vapourkit/blob/main/docs/Advanced%20Mode.md) for more information.
 
 ## 🌟 Features
 
