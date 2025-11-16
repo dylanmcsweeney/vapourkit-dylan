@@ -15,4 +15,10 @@ npm run build
 
 # Build installer (Windows)
 npm run build:setup
+
+# Build portable 7z
+npm run build:7z
+
+# Build portable zip
+npm run build:zip
 ```
