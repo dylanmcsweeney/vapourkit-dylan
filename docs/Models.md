@@ -1,4 +1,6 @@
-#### Included Models
+## Included Models
+__Please note:__ All included models follow the original licenses they were published with! Most are licensed as CC BY-NC-SA 4.0, unless stated otherwise!
+
 Ships with pre-configured upscaling models:
 - **Video Models (TSPAN)**: Temporally-aware models for video
   - AniRemaster TSPAN (Classic Anime)
@@ -8,7 +10,7 @@ Ships with pre-configured upscaling models:
 - **Image Based Models**: Frame-by-frame processing (still works on videos, but is not temporally stable/will shimmer)
   - AnimeJaNai HD V3 variants (Modern Anime)
   - AnimeJaNai SD V1 (Classic HQ Anime)
-  - AniSD AC/DC SPAN (Classic SD Anime)
+  - AniSD AC/DC SPAN (Classic SD Anime) (License: CC BY-NC 4.0)
   - AnimeSharp V4 (Low Quality Anime)
 
 ### Model Support
