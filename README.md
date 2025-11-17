@@ -12,68 +12,41 @@
 
 ### Installation
 [**Free download here**](https://ko-fi.com/s/2e5ebd456d)
-1. **Download**: Get the latest release from the link above
-2. **Install/Extract**: Run the installer or extract the ZIP to your desired location
-3. **First Launch**: The application will detect missing dependencies and prompt you to run setup
-4. **Setup**: Click "Start Setup" to download and install all required components
+1. Download and extract/install to your desired location
+2. On first launch, click "Start Setup" when prompted to install dependencies
 
-### Basic Usage (Simple Mode)
+### Quick Start
+1. Select or drag-and-drop a video file
+2. Choose an upscaling model
+3. Configure output location and format
+4. Click "Upscale Video" to process
+5. Use "Preview Output" or "Compare Videos" to review results
 
-1. **Select Video**: Click "Select Video" or drag and drop a video file into the window
-2. **Choose Model**: Select an AI upscaling model from the dropdown
-   - Video models are recommended for general use
-   - Image models provide sharper results but may have temporal instability
-3. **Configure Output**: 
-   - Choose output file location and name
-   - Select output format (MKV, MP4, AVI, etc.)
-4. **Preview** (Optional): Click "Preview Output" to see a sample frame
-5. **Process**: Click "Upscale Video" to start processing
-6. **Monitor Progress**: Track progress via the progress bar and console output
-7. **Compare**: After completion, use "Compare Videos" to view input vs output side-by-side
-
-### Advanced Usage (Developer Mode)
-
-See [Advanced Mode](https://github.com/Kim2091/vapourkit/blob/main/docs/Advanced%20Mode.md) for more information.
+For advanced features like custom filters and workflows, see [Advanced Mode](https://github.com/Kim2091/vapourkit/blob/main/docs/Advanced%20Mode.md).
 
 ## 🌟 Features
 
 ### Core Capabilities
-- **Video Upscaling**: Process videos with AI upscaling models
-- **Dual Backend Support**: Supports Nvidia GPUs with TensorRT and AMD/Intel GPUs using DirectML
-- **Real-time Preview**: Realtime preview of the upscale!
-- **Video Comparison Tool**: Built-in side-by-side comparison viewer for input/output videos
+- **AI Video Upscaling**: Process videos with high quality AI upscaling models
+- **Dual Backend Support**: TensorRT (NVIDIA) or DirectML (AMD/Intel/NVIDIA)
+- **Real-time Preview**: See results before processing
+- **Video Comparison**: Built-in side-by-side viewer
 
 ### Two Modes
 
 #### 🎯 Simple Mode (Default)
-Perfect for newcomers to video upscaling:
-- Select a video file
-- Choose an AI upscaling model
-- Configure output settings
-- Process with one click
+Simple mode is ideal for beginners who just want to upscale/restore a video using an AI model.
 
 #### 🔬 Advanced Mode
-Unlocks powerful customization options for advanced users:
-- **Pre-made Filters**: Ships with dozens of pre-made filters for common tasks (thank you tepete!)
-- **Custom VapourSynth Filters**: Write custom VapourSynth video processing filters
-- **Filter Pipeline**: Chain VapourSynth filters in combination with AI upscaling models
-- **Filter Templates**: Save, reuse, or share custom filter configurations (`.vkfilter` files)
-- **Workflow System**: Export/import complete processing workflows (`.vkworkflow` files)
-- **Custom Model Support**: Import your own ONNX models
+Advanced mode is for power users who need customization:
+- **Pre-made Filters**: Dozens of ready-to-use filters (thanks tepete!)
+- **Custom VapourSynth Filters**: Write and chain custom video processing filters
+- **Templates & Workflows**: Save/share filter configs (`.vkfilter`) and complete workflows (`.vkworkflow`)
+- **Custom Models**: Import your own ONNX models
 
 ### Model Support
 
-See [Model Support](docs/Models.md) for more information.
-
-### Workflow Management (Advanced Mode)
-
-Save complete processing configurations including:
-- Filter pipeline (all enabled filters and their settings)
-- Selected model and backend settings
-- Color matrix configuration
-- Output format preferences
-
-Export workflows to `.vkworkflow` files and share them or reuse them later.
+See [Model Support](docs/Models.md) for included models and custom model requirements.
 
 ## 📋 System Requirements
 
@@ -83,8 +56,8 @@ Export workflows to `.vkworkflow` files and share them or reuse them later.
 - **Storage**: 5 GB Minimum, 10 GB recommended free space for application and dependencies
 - **GPU**: 
   - Minimum 6 GB VRAM
-  - NVIDIA GPU 16xx or higher
-  - AMD/Intel/NVIDIA GPU with DirectX 12 support (for DirectML)
+  - NVIDIA 16xx series or newer (for TensorRT)
+  - AMD/Intel GPU with DirectX 12 support (for DirectML)
 
 ## 🔧 Development
 
