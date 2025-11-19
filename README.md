@@ -58,7 +58,7 @@ See [Model Support](docs/Models.md) for included models, custom model requiremen
 - **Storage**: 5 GB Minimum, 10 GB recommended free space for application and dependencies
 - **GPU**: 
   - Minimum 6 GB VRAM
-  - NVIDIA 16xx series or newer (for TensorRT)
+  - NVIDIA 16xx series or newer (for TensorRT) AND at least driver version 580.x!
   - AMD/Intel GPU with DirectX 12 support (for DirectML)
 
 ## 🔧 Development
