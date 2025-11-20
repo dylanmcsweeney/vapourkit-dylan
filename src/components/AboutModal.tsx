@@ -136,6 +136,16 @@ export const AboutModal: React.FC<AboutModalProps> = ({ show, onClose }) => {
                 <p className="text-sm font-medium text-white">Support me on Ko-fi</p>
               </div>
             </button>
+
+            <button
+              onClick={() => openExternal('https://github.com/Kim2091/vapourkit')}
+              className="w-full bg-dark-surface hover:bg-dark-bg border border-gray-700 hover:border-primary-purple rounded-lg px-4 py-3 transition-all duration-300 flex items-center gap-3 group"
+            >
+              <Github className="w-5 h-5 text-gray-400 group-hover:text-primary-purple transition-colors" />
+              <div className="flex-1 text-left">
+                <p className="text-sm font-medium text-white">View on GitHub</p>
+              </div>
+            </button>
           </div>
 
           {/* Model Licenses Section */}

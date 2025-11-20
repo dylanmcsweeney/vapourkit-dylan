@@ -53,3 +53,4 @@
 - Clarify precision options in GUI
 - Add syntax highlighting for filters
 - Add section for license information of included models
+- Add link to GitHub page in About window
