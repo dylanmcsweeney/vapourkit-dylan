@@ -1,13 +1,66 @@
 import React, { useEffect, useState } from 'react';
-import { Sparkles, Github, Heart, X } from 'lucide-react';
+import { Sparkles, Github, Heart, X, FileText, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface AboutModalProps {
   show: boolean;
   onClose: () => void;
 }
 
+interface ModelLicense {
+  name: string;
+  category: 'Video Models (TSPAN)' | 'Image Based Models';
+  license: string;
+  url?: string;
+}
+
+const MODEL_LICENSES: ModelLicense[] = [
+  // Video Models (TSPAN)
+  {
+    name: 'AniRemaster TSPAN',
+    category: 'Video Models (TSPAN)',
+    license: 'CC BY-NC-SA 4.0',
+  },
+  {
+    name: 'AnimeUpV2 TSPAN',
+    category: 'Video Models (TSPAN)',
+    license: 'CC BY-NC-SA 4.0',
+  },
+  {
+    name: 'AniDenoise TSPANV2',
+    category: 'Video Models (TSPAN)',
+    license: 'CC BY-NC-SA 4.0',
+  },
+  {
+    name: 'GameUp TSPANV2',
+    category: 'Video Models (TSPAN)',
+    license: 'CC BY-NC-SA 4.0',
+  },
+  // Image Based Models
+  {
+    name: 'AnimeJaNai HD V3',
+    category: 'Image Based Models',
+    license: 'CC BY-NC-SA 4.0',
+  },
+  {
+    name: 'AnimeJaNai SD V1',
+    category: 'Image Based Models',
+    license: 'CC BY-NC-SA 4.0',
+  },
+  {
+    name: 'AniSD AC/DC SPAN',
+    category: 'Image Based Models',
+    license: 'CC BY-NC 4.0',
+  },
+  {
+    name: 'AnimeSharp V4',
+    category: 'Image Based Models',
+    license: 'CC BY-NC-SA 4.0',
+  },
+];
+
 export const AboutModal: React.FC<AboutModalProps> = ({ show, onClose }) => {
   const [version, setVersion] = useState<string>('');
+  const [licensesExpanded, setLicensesExpanded] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchVersion = async () => {
@@ -32,7 +85,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ show, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-dark-elevated rounded-2xl border border-gray-800 shadow-2xl max-w-md w-full">
+      <div className="bg-dark-elevated rounded-2xl border border-gray-800 shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-800">
           <div className="flex items-center gap-3">
@@ -48,7 +101,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ show, onClose }) => {
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 overflow-y-auto">
           <div className="text-center">
             <h3 className="text-xl font-bold bg-gradient-to-r from-primary-blue via-primary-purple to-accent-cyan bg-clip-text text-transparent mb-2">
               Vapourkit
@@ -83,6 +136,44 @@ export const AboutModal: React.FC<AboutModalProps> = ({ show, onClose }) => {
                 <p className="text-sm font-medium text-white">Support me on Ko-fi</p>
               </div>
             </button>
+          </div>
+
+          {/* Model Licenses Section */}
+          <div className="border-t border-gray-800 pt-6">
+            <button
+              onClick={() => setLicensesExpanded(!licensesExpanded)}
+              className="w-full flex items-center justify-between gap-2 mb-4 hover:opacity-80 transition-opacity"
+            >
+              <div className="flex items-center gap-2">
+                <FileText className="w-5 h-5 text-primary-purple" />
+                <h3 className="text-lg font-semibold text-white">Licenses for Included Models</h3>
+              </div>
+              {licensesExpanded ? (
+                <ChevronUp className="w-5 h-5 text-gray-400" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-gray-400" />
+              )}
+            </button>
+            {licensesExpanded && (
+              <>
+                <p className="text-xs text-gray-500 mb-4">
+                  The following list shows the licenses for the models included with Vapourkit.
+                </p>
+                <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
+                  {MODEL_LICENSES.map((model, index) => (
+                    <div
+                      key={index}
+                      className="bg-dark-surface border border-gray-700/50 rounded-lg px-3 py-2"
+                    >
+                      <div className="flex justify-between items-start gap-2">
+                        <span className="text-sm text-white font-medium">{model.name}</span>
+                        <span className="text-xs text-gray-400 whitespace-nowrap">{model.license}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>

@@ -48,3 +48,8 @@
 ## 0.9.3
 - Fix Logo in header being misaligned in Simple Mode
 - Fix program icon being missing
+
+## 0.9.4
+- Clarify precision options in GUI
+- Add syntax highlighting for filters
+- Add section for license information of included models
