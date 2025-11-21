@@ -126,4 +126,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
   openReleasesPage: () => ipcRenderer.invoke('open-releases-page'),
   openReleaseUrl: (url: string) => ipcRenderer.invoke('open-release-url', url),
+  
+  // Queue operations
+  getQueue: () => ipcRenderer.invoke('get-queue'),
+  saveQueue: (queue: any[]) => ipcRenderer.invoke('save-queue', queue),
+  clearQueue: () => ipcRenderer.invoke('clear-queue'),
 });

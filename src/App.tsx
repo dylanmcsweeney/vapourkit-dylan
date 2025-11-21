@@ -1,7 +1,7 @@
 // src/App.tsx - Refactored with extracted components and hooks
 
 import { useState, useEffect, useRef } from 'react';
-import { Sparkles, XCircle, ChevronDown, ChevronUp, Terminal, Loader2 } from 'lucide-react';
+import { Sparkles, XCircle, ChevronDown, ChevronUp, Terminal, Loader2, List } from 'lucide-react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { ImportModelModal } from './components/ImportModelModal';
 import { AboutModal } from './components/AboutModal';
@@ -10,6 +10,8 @@ import { AutoBuildModal } from './components/AutoBuildModal';
 import { PluginsModal } from './components/PluginsModal';
 import { ModelManagerModal } from './components/ModelManagerModal';
 import { UpdateNotificationModal } from './components/UpdateNotificationModal';
+import { QueuePanel } from './components/QueuePanel';
+import { BatchConfigModal } from './components/BatchConfigModal';
 import type { UpdateInfo } from './electron';
 import { Header } from './components/Header';
 import { ModelBuildNotification } from './components/ModelBuildNotification';
@@ -28,6 +30,12 @@ import { useColorMatrix } from './hooks/useColorMatrix';
 import { useFilterConfig } from './hooks/useFilterConfig';
 import { useUIState } from './hooks/useUIState';
 import { useBackendOperations } from './hooks/useBackendOperations';
+import { useQueueManagement } from './hooks/useQueueManagement';
+import { useQueueState } from './hooks/useQueueState';
+import { useQueueHandlers } from './hooks/useQueueHandlers';
+import { useQueueProcessing } from './hooks/useQueueProcessing';
+import { useQueueEditing } from './hooks/useQueueEditing';
+import { useBatchConfig } from './hooks/useBatchConfig';
 import { getErrorMessage } from './types/errors';
 import { SetupScreen } from './components/SetupScreen';
 import { VideoPreviewPanel } from './components/VideoPreviewPanel';
@@ -90,11 +98,15 @@ function App() {
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
 
+  // Queue management state and handlers
+  const { state: queueState, actions: queueActions } = useQueueState();
+
   // Video processing hooks
   const {
     videoInfo,
     setVideoInfo,
     outputPath,
+    setOutputPath,
     isProcessing,
     isStopping,
     upscaleProgress,
@@ -111,6 +123,111 @@ function App() {
     handleCompareVideos,
     handleVideoError,
   } = useVideoProcessing({ outputFormat, onLog: addConsoleLog });
+  
+  // Queue management hook
+  const {
+    queue,
+    isLoadingQueue: _isLoadingQueue,
+    addToQueue,
+    removeFromQueue,
+    updateQueueItem,
+    updateItemWorkflow,
+    clearQueue,
+    clearCompletedItems,
+    reorderQueue,
+    getNextPendingItem,
+    getQueueStats: _getQueueStats,
+    requeueItem,
+  } = useQueueManagement({ onLog: addConsoleLog });
+
+  // Batch configuration hook
+  const {
+    showBatchConfig,
+    pendingBatchVideos,
+    handleSelectVideoWithQueue,
+    handleConfirmBatchConfig,
+    handleCloseBatchConfig,
+  } = useBatchConfig({
+    outputFormat,
+    selectedModel,
+    filters,
+    useDirectML,
+    numStreams,
+    onAddToQueue: (videoPaths, workflow, outputPath) => {
+      addToQueue(videoPaths, workflow, outputPath);
+      queueActions.setShowQueue(true);
+    },
+    onLoadVideoInfo: loadVideoInfo,
+    onLog: addConsoleLog,
+  });
+
+  // Queue handlers hook
+  const {
+    handleSelectQueueItem,
+    handleStartQueue,
+    handleStopQueue,
+    handleCancelQueueItem,
+    handleRequeueItem,
+  } = useQueueHandlers({
+    queue,
+    editingQueueItemId: queueState.editingQueueItemId,
+    selectedModel,
+    filters,
+    outputFormat,
+    useDirectML,
+    numStreams,
+    isProcessingQueueItem: queueState.isProcessingQueueItem,
+    setEditingQueueItemId: queueActions.setEditingQueueItemId,
+    setIsQueueStarted: queueActions.setIsQueueStarted,
+    setIsProcessingQueue: queueActions.setIsProcessingQueue,
+    setIsProcessingQueueItem: queueActions.setIsProcessingQueueItem,
+    setIsQueueStopping: queueActions.setIsQueueStopping,
+    setSelectedModel,
+    setFilters: handleSetFilters,
+    setOutputFormat,
+    toggleDirectML,
+    updateNumStreams,
+    updateQueueItem,
+    updateItemWorkflow,
+    requeueItem,
+    loadVideoInfo,
+    setOutputPath,
+    handleCancelUpscale,
+    onLog: addConsoleLog,
+  });
+
+  // Queue processing effects
+  useQueueProcessing({
+    queue,
+    isQueueStarted: queueState.isQueueStarted,
+    isProcessingQueueItem: queueState.isProcessingQueueItem,
+    isProcessingQueue: queueState.isProcessingQueue,
+    isProcessing,
+    upscaleProgress,
+    setIsProcessingQueue: queueActions.setIsProcessingQueue,
+    setIsProcessingQueueItem: queueActions.setIsProcessingQueueItem,
+    setIsQueueStarted: queueActions.setIsQueueStarted,
+    setVideoInfo,
+    setOutputPath,
+    updateQueueItem,
+    getNextPendingItem,
+    onLog: addConsoleLog,
+  });
+
+  // Queue editing effects
+  useQueueEditing({
+    editingQueueItemId: queueState.editingQueueItemId,
+    showQueue: queueState.showQueue,
+    selectedModel,
+    filters,
+    outputFormat,
+    useDirectML,
+    numStreams,
+    setEditingQueueItemId: queueActions.setEditingQueueItemId,
+    updateItemWorkflow,
+    onLog: addConsoleLog,
+  });
+  
   // Workflow management hook
   const {
     currentWorkflow,
@@ -339,6 +456,7 @@ function App() {
   };
 
 
+
   // Setup Screen
   if (isCheckingDeps || !isSetupComplete) {
     return (
@@ -462,10 +580,13 @@ function App() {
                 videoInfo={videoInfo}
                 isDragging={isDragging}
                 isProcessing={isProcessing}
-                onSelectVideo={handleSelectVideo}
+                queueCount={queue.length}
+                showQueue={queueState.showQueue}
+                onSelectVideo={handleSelectVideoWithQueue}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
+                onToggleQueue={() => queueActions.setShowQueue(!queueState.showQueue)}
               />
               
               <ModelSelectionPanel
@@ -507,78 +628,176 @@ function App() {
                 onToggle={handleToggleVideoInfo}
               />
 
-              {/* Start Button */}
-              <button
-                onClick={isProcessing ? handleCancelUpscale : () => handleUpscale(selectedModel || '', useDirectML, filters, numStreams)}
-                disabled={(() => {
-                  // Disable if stopping
-                  if (isStopping) return true;
-                  
-                  // Basic validation
-                  if (!videoInfo || !outputPath) return true;
-                  
-                  // Prevent processing if using TensorRT mode with ONNX models
-                  if (!useDirectML) {
-                    // Check simple mode selected model (only applies in simple mode)
-                    if (!developerMode && selectedModel && selectedModel.toLowerCase().endsWith('.onnx')) {
-                      return true;
-                    }
-                    
-                    // Check advanced mode AI model filters
-                    if (developerMode) {
-                      const hasOnnxModel = filters.some(f => 
-                        f.enabled && 
-                        f.filterType === 'aiModel' && 
-                        f.modelPath && 
-                        f.modelPath.toLowerCase().endsWith('.onnx')
-                      );
-                      if (hasOnnxModel) return true;
-                    }
-                  }
-                  
-                  // In advanced mode, allow processing without AI model
-                  // as long as there's at least one enabled filter or no filters at all
-                  if (developerMode) {
-                    // Allow if there are no filters (pure processing)
-                    if (filters.length === 0) return false;
-                    
-                    // Allow if at least one filter is enabled (AI model or custom)
-                    const hasEnabledFilter = filters.some(f => f.enabled);
-                    return !hasEnabledFilter;
-                  }
-                  
-                  // In simple mode, require a selected model
-                  if (!selectedModel) return true;
-                  
-                  return false;
-                })()}
-                className={`flex-shrink-0 w-full font-semibold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 ${
-                  isStopping
-                    ? 'bg-orange-500 cursor-not-allowed'
-                    : isProcessing
-                    ? 'bg-red-500 hover:bg-red-600'
-                    : 'bg-gradient-to-r from-primary-blue to-primary-purple hover:from-blue-600 hover:to-purple-600 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed'
-                }`}
-              >
-                {isStopping ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Stopping...
-                  </>
-                ) : isProcessing ? (
-                  <>
-                    <XCircle className="w-5 h-5" />
-                    Stop Processing
-                  </>
+              {/* Editing Queue Item Banner */}
+              {queueState.editingQueueItemId && (() => {
+                const editingItem = queue.find(q => q.id === queueState.editingQueueItemId);
+                return editingItem ? (
+                  <div className="flex-shrink-0 bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-500/50 rounded-xl p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-blue-400 font-medium mb-1">Editing Queue Item</p>
+                        <p className="text-sm truncate" title={editingItem.videoName}>{editingItem.videoName}</p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          queueActions.setEditingQueueItemId(null);
+                          queueActions.setShowQueue(false);
+                        }}
+                        className="ml-2 px-3 py-1 text-xs bg-dark-surface hover:bg-dark-bg rounded-lg transition-colors"
+                      >
+                        Exit
+                      </button>
+                    </div>
+                  </div>
+                ) : null;
+              })()}
+
+              {/* Action Buttons */}
+              <div className="flex-shrink-0 flex gap-2">
+                {queueState.showQueue ? (
+                  <button
+                    onClick={queueState.isQueueStarted ? handleStopQueue : handleStartQueue}
+                    disabled={(!queueState.isQueueStarted && queue.filter(item => item.status === 'pending').length === 0) || queueState.isQueueStopping}
+                    className={`flex-1 font-semibold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 ${
+                      queueState.isQueueStarted
+                        ? queueState.isQueueStopping
+                          ? 'bg-orange-600 cursor-wait'
+                          : 'bg-orange-500 hover:bg-orange-600'
+                        : 'bg-gradient-to-r from-primary-blue to-primary-purple hover:from-blue-600 hover:to-purple-600 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed'
+                    }`}
+                  >
+                    {queueState.isQueueStarted ? (
+                      queueState.isQueueStopping ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Stopping Queue...
+                        </>
+                      ) : (
+                        <>
+                          <XCircle className="w-5 h-5" />
+                          Stop Queue
+                        </>
+                      )
+                    ) : (
+                      <>
+                        <Sparkles className="w-5 h-5" />
+                        Start Queue
+                      </>
+                    )}
+                  </button>
                 ) : (
-                  <>
-                    <Sparkles className="w-5 h-5" />
-                    Start Processing
-                  </>
+                  <button
+                    onClick={isProcessing ? handleCancelUpscale : () => handleUpscale(selectedModel || '', useDirectML, filters, numStreams)}
+                    disabled={(() => {
+                      // Disable if stopping
+                      if (isStopping) return true;
+                      
+                      // Basic validation
+                      if (!videoInfo || !outputPath) return true;
+                      
+                      // Prevent processing if using TensorRT mode with ONNX models
+                      if (!useDirectML) {
+                        // Check simple mode selected model (only applies in simple mode)
+                        if (!developerMode && selectedModel && selectedModel.toLowerCase().endsWith('.onnx')) {
+                          return true;
+                        }
+                        
+                        // Check advanced mode AI model filters
+                        if (developerMode) {
+                          const hasOnnxModel = filters.some(f => 
+                            f.enabled && 
+                            f.filterType === 'aiModel' && 
+                            f.modelPath && 
+                            f.modelPath.toLowerCase().endsWith('.onnx')
+                          );
+                          if (hasOnnxModel) return true;
+                        }
+                      }
+                      
+                      // In advanced mode, allow processing without AI model
+                      // as long as there's at least one enabled filter or no filters at all
+                      if (developerMode) {
+                        // Allow if there are no filters (pure processing)
+                        if (filters.length === 0) return false;
+                        
+                        // Allow if at least one filter is enabled (AI model or custom)
+                        const hasEnabledFilter = filters.some(f => f.enabled);
+                        return !hasEnabledFilter;
+                      }
+                      
+                      // In simple mode, require a selected model
+                      if (!selectedModel) return true;
+                      
+                      return false;
+                    })()}
+                    className={`flex-1 font-semibold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 ${
+                      isStopping
+                        ? 'bg-orange-500 cursor-not-allowed'
+                        : isProcessing
+                        ? 'bg-red-500 hover:bg-red-600'
+                        : 'bg-gradient-to-r from-primary-blue to-primary-purple hover:from-blue-600 hover:to-purple-600 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed'
+                    }`}
+                  >
+                    {isStopping ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Stopping...
+                      </>
+                    ) : isProcessing ? (
+                      <>
+                        <XCircle className="w-5 h-5" />
+                        Stop Processing
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-5 h-5" />
+                        Start Processing
+                      </>
+                    )}
+                  </button>
                 )}
-              </button>
+              </div>
+              
+              {/* Queue Panel Toggle Button */}
+              {queue.length > 0 && (
+                <button
+                  onClick={() => queueActions.setShowQueue(!queueState.showQueue)}
+                  className={`flex-shrink-0 w-full px-4 py-3 rounded-xl transition-all border flex items-center justify-between ${
+                    queueState.showQueue 
+                      ? 'bg-gradient-to-r from-blue-900/30 to-purple-900/30 border-blue-500/50' 
+                      : 'bg-dark-surface hover:bg-dark-bg border-gray-800'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <List className="w-4 h-4" />
+                    <span className="text-sm font-medium">Queue ({queue.length} video{queue.length !== 1 ? 's' : ''})</span>
+                  </div>
+                  <ChevronDown className={`w-5 h-5 transition-transform ${queueState.showQueue ? 'rotate-180' : ''}`} />
+                </button>
+              )}
             </div>
           </Panel>
+          
+          {/* Queue Panel - Collapsible on the right */}
+          {queueState.showQueue && (
+            <>
+              <PanelResizeHandle className="w-1 bg-gray-800 hover:bg-primary-purple transition-colors rounded-full" />
+              <Panel defaultSize={25} minSize={20} maxSize={40}>
+                <QueuePanel
+                  queue={queue}
+                  isQueueStarted={queueState.isQueueStarted}
+                  editingItemId={queueState.editingQueueItemId}
+                  onRemoveItem={removeFromQueue}
+                  onSelectItem={handleSelectQueueItem}
+                  onClearCompleted={clearCompletedItems}
+                  onClearAll={clearQueue}
+                  onReorder={reorderQueue}
+                  onCancelItem={handleCancelQueueItem}
+                  onRequeueItem={handleRequeueItem}
+                />
+              </Panel>
+            </>
+          )}
         </PanelGroup>
         )}
       </div>
@@ -644,6 +863,15 @@ function App() {
         <UpdateNotificationModal
           updateInfo={updateInfo}
           onClose={() => setShowUpdateModal(false)}
+        />
+      )}
+      
+      {/* Batch Config Modal */}
+      {showBatchConfig && (
+        <BatchConfigModal
+          videos={pendingBatchVideos}
+          onConfirm={handleConfirmBatchConfig}
+          onClose={handleCloseBatchConfig}
         />
       )}
     </div>

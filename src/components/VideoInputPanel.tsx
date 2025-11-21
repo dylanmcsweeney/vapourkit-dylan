@@ -1,30 +1,50 @@
-import { Upload, Video } from 'lucide-react';
+import { Upload, Video, List } from 'lucide-react';
 import type { VideoInfo } from '../electron.d';
 
 interface VideoInputPanelProps {
   videoInfo: VideoInfo | null;
   isDragging: boolean;
   isProcessing: boolean;
+  queueCount: number;
+  showQueue: boolean;
   onSelectVideo: () => Promise<void>;
   onDragOver: (e: React.DragEvent) => void;
   onDragLeave: (e: React.DragEvent) => void;
   onDrop: (e: React.DragEvent) => Promise<void>;
+  onToggleQueue: () => void;
 }
 
 export function VideoInputPanel({
   videoInfo,
   isDragging,
   isProcessing,
+  queueCount,
+  showQueue,
   onSelectVideo,
   onDragOver,
   onDragLeave,
   onDrop,
+  onToggleQueue,
 }: VideoInputPanelProps) {
   return (
     <div className="flex-shrink-0 bg-dark-elevated rounded-xl border border-gray-800 p-4">
-      <div className="flex items-center gap-2 mb-3">
-        <Upload className="w-4 h-4 text-primary-blue" />
-        <h2 className="text-sm font-semibold">Input Video</h2>
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <div className="flex items-center gap-2">
+          <Upload className="w-4 h-4 text-primary-blue" />
+          <h2 className="text-sm font-semibold">Input Video</h2>
+        </div>
+        <button
+          onClick={onToggleQueue}
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-lg transition-all ${
+            showQueue
+              ? 'bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-500/50 text-blue-300'
+              : 'bg-dark-surface hover:bg-dark-bg border border-gray-700 text-gray-400 hover:text-gray-300'
+          }`}
+          title={showQueue ? 'Hide queue' : 'Show queue'}
+        >
+          <List className="w-3.5 h-3.5" />
+          {queueCount > 0 && <span className="font-medium">{queueCount}</span>}
+        </button>
       </div>
       
       <div
@@ -48,8 +68,8 @@ export function VideoInputPanel({
         ) : (
           <div>
             <Upload className="w-8 h-8 text-gray-600 mx-auto mb-2" />
-            <p className="text-xs text-gray-400 mb-1">Drop video here or click to browse</p>
-            <p className="text-xs text-gray-500">Supports MP4, MKV, AVI, and more</p>
+            <p className="text-xs text-gray-400 mb-1">Drop video(s) here or click to browse</p>
+            <p className="text-xs text-gray-500">Select multiple to add to queue</p>
           </div>
         )}
       </div>

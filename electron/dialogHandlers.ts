@@ -13,13 +13,20 @@ export function registerDialogHandlers() {
   ipcMain.handle('select-video-file', async () => {
     logger.info('Opening video file selection dialog');
     const result = await dialog.showOpenDialog({
-      properties: ['openFile'],
+      properties: ['openFile', 'multiSelections'],
       filters: [
         { name: 'Videos', extensions: ['mp4', 'avi', 'mkv', 'mov', 'webm', 'flv', 'wmv'] }
       ]
     });
 
-    return handleDialogResult<string>(result, 'Video file selection');
+    // Return array of file paths for multi-selection support
+    if (result.canceled || result.filePaths.length === 0) {
+      logger.info('Video file selection canceled');
+      return null;
+    }
+    
+    logger.info(`Selected ${result.filePaths.length} video file(s)`);
+    return result.filePaths;
   });
 
   ipcMain.handle('select-onnx-file', async () => {

@@ -87,10 +87,13 @@ export class VapourSynthScriptGenerator {
       .replace(/{{DEFAULT_TRANSFER}}/g, defaultTransfer)
       .replace(/{{FILTERS}}/g, filterCode);
 
+    // Use timestamp + random string for unique script path to avoid collisions in batch processing
     const timestamp = Date.now();
-    const tempScriptPath = path.join(os.tmpdir(), `tspan_upscale_${timestamp}.vpy`);
+    const randomId = Math.random().toString(36).substring(2, 9);
+    const tempScriptPath = path.join(os.tmpdir(), `tspan_upscale_${timestamp}_${randomId}.vpy`);
     await fs.writeFile(tempScriptPath, template, 'utf-8');
-
+    
+    logger.info(`Generated script: ${tempScriptPath}`);
     return tempScriptPath;
   }
 

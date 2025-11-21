@@ -7,7 +7,7 @@ export interface ElectronAPI {
   detectCudaSupport: () => Promise<boolean>;
   
   // Video operations
-  selectVideoFile: () => Promise<string | null>;
+  selectVideoFile: () => Promise<string[] | null>;
   selectOnnxFile: () => Promise<string | null>;
   selectTemplateFile: () => Promise<string | null>;
   getVideoInfo: (filePath: string) => Promise<VideoInfo>;
@@ -113,6 +113,11 @@ export interface ElectronAPI {
   checkForUpdates: () => Promise<{ success: boolean; data?: UpdateInfo; error?: string }>;
   openReleasesPage: () => Promise<{ success: boolean; error?: string }>;
   openReleaseUrl: (url: string) => Promise<{ success: boolean; error?: string }>;
+  
+  // Queue operations
+  getQueue: () => Promise<QueueItem[]>;
+  saveQueue: (queue: QueueItem[]) => Promise<{ success: boolean; error?: string }>;
+  clearQueue: () => Promise<{ success: boolean; error?: string }>;
 }
 
 export interface DevConsoleLog {
@@ -301,6 +306,26 @@ export interface UpdateInfo {
   releaseUrl: string;
   changelog: string;
   publishedAt: string;
+}
+
+export interface QueueItem {
+  id: string;
+  videoPath: string;
+  videoName: string;
+  outputPath: string;
+  status: 'pending' | 'processing' | 'completed' | 'error';
+  progress?: number;
+  errorMessage?: string;
+  addedAt: string;
+  completedAt?: string;
+  // Workflow snapshot for this video
+  workflow: {
+    selectedModel: string | null;
+    filters: Filter[];
+    outputFormat: string;
+    useDirectML: boolean;
+    numStreams: number;
+  };
 }
 
 declare global {

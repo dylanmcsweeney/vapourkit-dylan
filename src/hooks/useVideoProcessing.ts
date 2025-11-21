@@ -121,9 +121,10 @@ export function useVideoProcessing({ outputFormat, onLog }: UseVideoProcessingPr
 
   const handleSelectVideo = async (): Promise<void> => {
     try {
-      const filePath = await window.electronAPI.selectVideoFile();
-      if (filePath) {
-        await loadVideoInfo(filePath);
+      const files = await window.electronAPI.selectVideoFile();
+      // Handle single file selection - take first file from array
+      if (files && files.length > 0) {
+        await loadVideoInfo(files[0]);
       }
     } catch (error) {
       onLog(`Error: ${getErrorMessage(error)}`);
