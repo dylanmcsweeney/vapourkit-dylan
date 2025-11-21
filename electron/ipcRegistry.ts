@@ -6,6 +6,7 @@ import { registerConfigHandlers } from './configHandlers';
 import { registerWorkflowHandlers } from './workflowHandlers';
 import { registerTemplateHandlers } from './templateHandlers';
 import { registerDependencyHandlers } from './dependencyHandlers';
+import { registerUpdateHandlers } from './updateHandlers';
 import { DependencyManager } from './dependencyManager';
 import { VapourSynthScriptGenerator } from './scriptGenerator';
 import { TemplateManager } from './templateManager';
@@ -30,4 +31,5 @@ export function registerAllIpcHandlers(
   registerWorkflowHandlers();
   registerTemplateHandlers(templateManager);
   registerDependencyHandlers(dependencyManager, pluginInstaller);
+  registerUpdateHandlers();
 }

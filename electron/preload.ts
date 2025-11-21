@@ -121,4 +121,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('plugin-dependency-progress', listener);
     return () => ipcRenderer.removeListener('plugin-dependency-progress', listener);
   },
+  
+  // Update operations
+  checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
+  openReleasesPage: () => ipcRenderer.invoke('open-releases-page'),
+  openReleaseUrl: (url: string) => ipcRenderer.invoke('open-release-url', url),
 });

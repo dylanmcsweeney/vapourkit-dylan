@@ -108,6 +108,11 @@ export interface ElectronAPI {
   checkPluginDependencies: () => Promise<{ installed: boolean; packages: string[] }>;
   cancelPluginDependencyInstall: () => Promise<{ success: boolean }>;
   onPluginDependencyProgress: (callback: (progress: PluginDependencyProgress) => void) => () => void;
+  
+  // Update operations
+  checkForUpdates: () => Promise<{ success: boolean; data?: UpdateInfo; error?: string }>;
+  openReleasesPage: () => Promise<{ success: boolean; error?: string }>;
+  openReleaseUrl: (url: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 export interface DevConsoleLog {
@@ -280,6 +285,22 @@ export interface WorkflowData {
   }[];
   createdAt?: string;
   description?: string;
+}
+
+export interface PluginDependencyProgress {
+  type: 'download' | 'extract' | 'install' | 'complete' | 'error';
+  progress: number;
+  message: string;
+  package?: string;
+}
+
+export interface UpdateInfo {
+  available: boolean;
+  currentVersion: string;
+  latestVersion: string;
+  releaseUrl: string;
+  changelog: string;
+  publishedAt: string;
 }
 
 declare global {

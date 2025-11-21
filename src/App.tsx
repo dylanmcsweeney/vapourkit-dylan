@@ -9,6 +9,8 @@ import { SettingsModal } from './components/SettingsModal';
 import { AutoBuildModal } from './components/AutoBuildModal';
 import { PluginsModal } from './components/PluginsModal';
 import { ModelManagerModal } from './components/ModelManagerModal';
+import { UpdateNotificationModal } from './components/UpdateNotificationModal';
+import type { UpdateInfo } from './electron';
 import { Header } from './components/Header';
 import { ModelBuildNotification } from './components/ModelBuildNotification';
 import { useModels } from './hooks/useModels';
@@ -84,6 +86,10 @@ function App() {
   // Model manager modal state
   const [showModelManager, setShowModelManager] = useState(false);
   
+  // Update notification state
+  const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+
   // Video processing hooks
   const {
     videoInfo,
@@ -236,6 +242,30 @@ function App() {
       loadFfmpegConfig();
     }
   }, [isSetupComplete]);
+
+  // Check for updates on startup
+  useEffect(() => {
+    const checkForUpdates = async (): Promise<void> => {
+      try {
+        const result = await window.electronAPI.checkForUpdates();
+        if (result.success && result.data && result.data.available) {
+          setUpdateInfo(result.data);
+          setShowUpdateModal(true);
+          addConsoleLog(`Update available: ${result.data.latestVersion}`);
+        } else {
+          addConsoleLog('No updates available');
+        }
+      } catch (error) {
+        console.error('Failed to check for updates:', error);
+      }
+    };
+    
+    if (isSetupComplete) {
+      // Check for updates after a short delay to avoid blocking initial load
+      const timeoutId = setTimeout(checkForUpdates, 2000);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isSetupComplete, addConsoleLog]);
 
   // Global error handlers with proper cleanup
   useEffect(() => {
@@ -609,6 +639,13 @@ function App() {
           await loadUninitializedModels();
         }}
       />
+
+      {showUpdateModal && (
+        <UpdateNotificationModal
+          updateInfo={updateInfo}
+          onClose={() => setShowUpdateModal(false)}
+        />
+      )}
     </div>
   );
 }
