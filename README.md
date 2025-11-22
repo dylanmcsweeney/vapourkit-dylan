@@ -31,8 +31,9 @@ For advanced features like custom filters and workflows, see [Advanced Mode](htt
 ### Core Capabilities
 - **AI Video Upscaling**: Process videos with high quality AI upscaling models
 - **Dual Backend Support**: TensorRT (NVIDIA) or DirectML (AMD/Intel/NVIDIA)
-- **Real-time Preview**: See results before processing
+- **Real-time Preview**: See results while processing
 - **Video Comparison**: Built-in side-by-side viewer
+- **Batch Processing**: Upscale multiple videos sequentially
 
 ### Two Modes
 
@@ -45,6 +46,7 @@ Advanced mode is for power users who need customization:
 - **Custom VapourSynth Filters**: Write and chain custom video processing filters
 - **Templates & Workflows**: Save/share filter configs (`.vkfilter`) and complete workflows (`.vkworkflow`)
 - **Custom Models**: Import your own ONNX models
+- **Enhanced Batch Processing**: Process multiple videos sequentially with custom workflows
 
 ### Model Support
 
