@@ -63,7 +63,7 @@ export function VideoInputPanel({
           <div>
             <Video className="w-8 h-8 text-primary-purple mx-auto mb-2" />
             <p className="text-sm font-medium mb-1 truncate">{videoInfo.name}</p>
-            <p className="text-xs text-gray-400">{videoInfo.resolution} • {videoInfo.fps} FPS</p>
+            <p className="text-xs text-gray-400">{videoInfo.resolution} • {videoInfo.fps} FPS • {videoInfo.sizeFormatted}</p>
             <p className="text-xs text-gray-500 mt-0.5">{videoInfo.duration}</p>
           </div>
         ) : (

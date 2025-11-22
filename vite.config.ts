@@ -12,7 +12,15 @@ export default defineConfig({
     __APP_VERSION__: JSON.stringify(packageJson.version)
   },
   build: {
-    outDir: 'dist/renderer'
+    outDir: 'dist/renderer',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'lucide-react'],
+          codemirror: ['@uiw/react-codemirror', '@codemirror/lang-python', '@codemirror/theme-one-dark']
+        }
+      }
+    }
   },
   server: {
     port: 5173,

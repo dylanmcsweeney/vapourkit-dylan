@@ -7,6 +7,7 @@ import { ErrorMessageHandler } from './errorMessageHandler';
 export interface OutputInfo {
   resolution: string | null;
   fps: number | null;
+  pixelFormat?: string | null;
 }
 
 /**
@@ -127,9 +128,11 @@ export class VapourSynthInfoExtractor {
           const widthMatch = output.match(/Width:\s*(\d+)/i);
           const heightMatch = output.match(/Height:\s*(\d+)/i);
           const fpsMatch = output.match(/FPS:\s*(\d+)\/(\d+)\s*\(([\d.]+)\s*fps\)/i);
+          const formatMatch = output.match(/Format Name:\s*(\w+)/i);
           
           let resolution: string | null = null;
           let fps: number | null = null;
+          let pixelFormat: string | null = null;
           
           if (widthMatch && heightMatch) {
             const width = parseInt(widthMatch[1], 10);
@@ -148,24 +151,29 @@ export class VapourSynthInfoExtractor {
             logger.warn('Could not parse FPS from vspipe output');
             logger.warn(`FPS regex did not match. Looking for pattern: FPS: num/den (decimal)`);
           }
+
+          if (formatMatch) {
+            pixelFormat = formatMatch[1];
+            logger.upscale(`Detected output pixel format: ${pixelFormat}`);
+          }
           
           if (!resolution && !fps) {
             logger.debug(`vspipe output: ${output}`);
           }
           
-          resolve({ resolution, fps });
+          resolve({ resolution, fps, pixelFormat });
         } else {
           const actualError = ErrorMessageHandler.extractErrorMessage(stderrOutput);
           logger.error(`vspipe info failed with code ${code}`);
           logger.error(`Error: ${actualError}`);
           logger.error(`Full output: ${output}`);
-          resolve({ resolution: null, fps: null });
+          resolve({ resolution: null, fps: null, pixelFormat: null });
         }
       });
 
       vspipe.on('error', (error) => {
         logger.error('vspipe info error:', error);
-        resolve({ resolution: null, fps: null });
+        resolve({ resolution: null, fps: null, pixelFormat: null });
       });
     });
   }

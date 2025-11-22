@@ -19,7 +19,13 @@ export interface ElectronAPI {
     filters?: Filter[],
     upscalePosition?: number,
     numStreams?: number
-  ) => Promise<{ resolution: string | null; fps: number | null }>;
+  ) => Promise<{ 
+    resolution: string | null; 
+    fps: number | null;
+    pixelFormat?: string | null;
+    codec?: string;
+    scanType?: string;
+  }>;
   getFilePathFromFile: (file: File) => string;
   
   // Model operations
@@ -50,7 +56,6 @@ export interface ElectronAPI {
   onUpscaleProgress: (callback: (progress: UpscaleProgress) => void) => () => void;
   openOutputFolder: (filePath: string) => Promise<void>;
   compareVideos: (inputPath: string, outputPath: string) => Promise<{ success: boolean; error?: string }>;
-  readVideoFile: (filePath: string) => Promise<ArrayBuffer>;
   
   // Shell operations
   openExternal: (url: string) => Promise<void>;
@@ -149,6 +154,13 @@ export interface VideoInfo {
   outputFps?: number;
   duration?: string;
   pixelFormat?: string;
+  codec?: string;
+  container?: string;
+  scanType?: string;
+  colorSpace?: string;
+  outputPixelFormat?: string;
+  outputCodec?: string;
+  outputScanType?: string;
 }
 
 export interface ModelFile {

@@ -10,6 +10,7 @@ import { formatBytes } from './ipcUtilities';
 import { VapourSynthScriptGenerator } from './scriptGenerator';
 import { UpscaleExecutor } from './upscaleExecutor';
 import { DependencyManager } from './dependencyManager';
+import { FFmpegSettingsManager } from './ffmpegSettingsManager';
 
 let upscaleExecutor: UpscaleExecutor | null = null;
 
@@ -34,7 +35,11 @@ export function registerVideoHandlers(
         sizeFormatted: formatBytes(stats.size),
         resolution: metadata.resolution,
         fps: metadata.fps,
-        pixelFormat: metadata.pixelFormat
+        pixelFormat: metadata.pixelFormat,
+        codec: metadata.codec,
+        container: metadata.container,
+        scanType: metadata.scanType,
+        colorSpace: metadata.colorSpace
       };
       
       logger.info(`Video info: ${info.name}, ${info.sizeFormatted}, ${metadata.resolution || 'unknown resolution'}, ${metadata.fps ? metadata.fps + ' fps' : 'unknown fps'}, ${metadata.pixelFormat || 'unknown format'}`);
@@ -75,9 +80,28 @@ export function registerVideoHandlers(
       
       const info = await tempExecutor.getOutputInfo(scriptPath);
       
+      // Get codec from settings
+      const ffmpegConfig = await FFmpegSettingsManager.loadFFmpegConfig(configManager);
+      // Infer codec from videoArgs or default
+      let codec = 'H.264'; // Default assumption if not specified
+      if (ffmpegConfig.videoArgs) {
+          const args = ffmpegConfig.videoArgs.join(' ');
+          if (args.includes('libx265') || args.includes('hevc')) codec = 'H.265 (HEVC)';
+          else if (args.includes('libx264')) codec = 'H.264 (AVC)';
+          else if (args.includes('prores')) codec = 'ProRes';
+          else if (args.includes('vp9')) codec = 'VP9';
+          else if (args.includes('av1')) codec = 'AV1';
+      }
+
       await scriptGenerator.cleanupScript(scriptPath);
       
-      return info;
+      return {
+        resolution: info.resolution,
+        fps: info.fps,
+        pixelFormat: info.pixelFormat,
+        codec: codec,
+        scanType: 'Progressive' // AI upscaling output is typically progressive
+      };
     } catch (error) {
       logger.error('Error getting output info:', error);
       return { resolution: null, fps: null };
@@ -225,18 +249,6 @@ export function registerVideoHandlers(
       logger.error('Error launching video comparison tool:', error);
       const errorMsg = error instanceof Error ? error.message : String(error);
       return { success: false, error: errorMsg };
-    }
-  });
-
-  ipcMain.handle('read-video-file', async (event, filePath: string) => {
-    logger.info(`Reading video file: ${filePath}`);
-    try {
-      const buffer = await fs.readFile(filePath);
-      return buffer.buffer;
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : String(error);
-      logger.errorWithDialog('Video Load Error', `Failed to read video file: ${errorMsg}`);
-      throw error;
     }
   });
 }

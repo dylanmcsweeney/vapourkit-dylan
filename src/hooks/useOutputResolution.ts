@@ -52,7 +52,10 @@ export function useOutputResolution({
           onUpdateVideoInfo(prev => prev ? { 
             ...prev, 
             outputResolution: info.resolution || undefined,
-            outputFps: info.fps || undefined
+            outputFps: info.fps || undefined,
+            outputPixelFormat: info.pixelFormat || undefined,
+            outputCodec: info.codec || undefined,
+            outputScanType: info.scanType || undefined
           } : null);
           
           const logParts = [];

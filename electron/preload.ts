@@ -53,7 +53,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   openOutputFolder: (filePath: string) => ipcRenderer.invoke('open-output-folder', filePath),
   compareVideos: (inputPath: string, outputPath: string) => ipcRenderer.invoke('compare-videos', inputPath, outputPath),
-  readVideoFile: (filePath: string) => ipcRenderer.invoke('read-video-file', filePath),
   
   // Shell operations
   openExternal: (url: string) => ipcRenderer.invoke('open-external', url),

@@ -27,34 +27,74 @@ export function VideoInfoPanel({
       </button>
       
       {showVideoInfo && (
-        <div className="px-4 pb-3 space-y-2">
-          <div>
-            <p className="text-sm text-gray-500 uppercase mb-0.5">File Name</p>
-            <p className="text-sm font-medium break-all">{videoInfo?.name || 'N/A'}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500 uppercase mb-0.5">File Size</p>
-            <p className="text-sm font-medium">{videoInfo?.sizeFormatted || 'N/A'}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500 uppercase mb-0.5">Input Resolution</p>
-            <p className="text-sm font-medium">{videoInfo?.resolution || 'N/A'}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500 uppercase mb-0.5">Output Resolution</p>
-            <p className="text-sm font-medium text-primary-purple">
-              {videoInfo?.outputResolution || 'N/A'}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500 uppercase mb-0.5">Frame Rate</p>
-            <p className="text-sm font-medium">{videoInfo?.fps ? `${videoInfo.fps} FPS` : 'N/A'}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500 uppercase mb-0.5">Output Frame Rate</p>
-            <p className="text-sm font-medium text-primary-purple">
-              {videoInfo?.outputFps ? `${videoInfo.outputFps} FPS` : 'N/A'}
-            </p>
+        <div className="px-4 pb-4 space-y-4">
+          {/* Input / Output Comparison */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Input Column */}
+            <div className="space-y-3">
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-gray-800 pb-1">Input</h3>
+              
+              <div>
+                <p className="text-xs text-gray-500 uppercase mb-0.5">Resolution</p>
+                <p className="text-sm font-medium">{videoInfo?.resolution || 'N/A'}</p>
+              </div>
+              
+              <div>
+                <p className="text-xs text-gray-500 uppercase mb-0.5">Frame Rate</p>
+                <p className="text-sm font-medium">{videoInfo?.fps ? `${videoInfo.fps} FPS` : 'N/A'}</p>
+              </div>
+
+              <div>
+                <p className="text-xs text-gray-500 uppercase mb-0.5">Codec</p>
+                <p className="text-sm font-medium uppercase">{videoInfo?.codec || 'N/A'}</p>
+              </div>
+
+              <div>
+                <p className="text-xs text-gray-500 uppercase mb-0.5">Scan Type</p>
+                <p className={`text-sm font-medium ${videoInfo?.scanType?.includes('Interlaced') ? 'text-yellow-500' : ''}`}>
+                  {videoInfo?.scanType || 'N/A'}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs text-gray-500 uppercase mb-0.5">Format</p>
+                <p className="text-xs font-medium text-gray-300 break-words" title={videoInfo?.colorSpace || videoInfo?.pixelFormat}>
+                  {videoInfo?.pixelFormat || 'N/A'}
+                </p>
+              </div>
+            </div>
+
+            {/* Output Column */}
+            <div className="space-y-3">
+              <h3 className="text-xs font-bold text-primary-purple uppercase tracking-wider border-b border-gray-800 pb-1">Output</h3>
+              
+              <div>
+                <p className="text-xs text-gray-500 uppercase mb-0.5">Resolution</p>
+                <p className="text-sm font-medium text-primary-purple">{videoInfo?.outputResolution || 'N/A'}</p>
+              </div>
+              
+              <div>
+                <p className="text-xs text-gray-500 uppercase mb-0.5">Frame Rate</p>
+                <p className="text-sm font-medium text-primary-purple">{videoInfo?.outputFps ? `${videoInfo.outputFps} FPS` : 'N/A'}</p>
+              </div>
+
+              <div>
+                <p className="text-xs text-gray-500 uppercase mb-0.5">Codec</p>
+                <p className="text-sm font-medium text-primary-purple uppercase">{videoInfo?.outputCodec || 'N/A'}</p>
+              </div>
+
+              <div>
+                <p className="text-xs text-gray-500 uppercase mb-0.5">Scan Type</p>
+                <p className="text-sm font-medium text-primary-purple">{videoInfo?.outputScanType || 'N/A'}</p>
+              </div>
+
+              <div>
+                <p className="text-xs text-gray-500 uppercase mb-0.5">Format</p>
+                <p className="text-xs font-medium text-primary-purple break-words">
+                  {videoInfo?.outputPixelFormat || 'N/A'}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       )}

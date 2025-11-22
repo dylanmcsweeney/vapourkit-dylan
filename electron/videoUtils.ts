@@ -8,6 +8,10 @@ export async function extractVideoMetadata(filePath: string): Promise<{
   resolution?: string;
   fps?: number;
   pixelFormat?: string;
+  codec?: string;
+  container?: string;
+  scanType?: string;
+  colorSpace?: string;
 }> {
   try {
     const { execFile } = require('child_process');
@@ -37,6 +41,78 @@ export async function extractVideoMetadata(filePath: string): Promise<{
     
     let resolution: string | undefined;
     let fps: number | undefined;
+    let pixelFormat: string | undefined;
+    let codec: string | undefined;
+    let container: string | undefined;
+    let scanType: string = 'Unknown';
+    let colorSpace: string | undefined;
+    
+    // Parse container
+    const containerMatch = output.match(/Input #0, ([\w,]+),/);
+    if (containerMatch) {
+      container = containerMatch[1].split(',')[0]; // Get first container format
+    }
+
+    // Find video stream line
+    const videoStreamMatch = output.match(/Stream #\d+:\d+.*Video: (.*)/);
+    if (videoStreamMatch) {
+      const videoInfo = videoStreamMatch[1];
+      
+      // Parse codec
+      const codecMatch = videoInfo.match(/^(\w+)/);
+      if (codecMatch) {
+        codec = codecMatch[1];
+      }
+
+      // Parse pixel format / color space
+      // Usually looks like: h264 (High), yuv420p(tv, bt709), ...
+      const parts = videoInfo.split(',').map((p: string) => p.trim());
+      if (parts.length > 1) {
+        // The second part is usually pixel format
+        const pixFmt = parts[1];
+        // Remove details in parens for cleaner display, but keep them for color space if needed
+        pixelFormat = pixFmt.split('(')[0];
+        colorSpace = pixFmt;
+      }
+
+      // Parse scan type with details
+      let scanDetails: string[] = [];
+      
+      // Check for field order
+      if (videoInfo.match(/tff|top first/i)) {
+        scanDetails.push('Top Field First');
+      } else if (videoInfo.match(/bff|bottom first/i)) {
+        scanDetails.push('Bottom Field First');
+      } else if (videoInfo.match(/mbaff/i)) {
+        scanDetails.push('MBAFF');
+      }
+      
+      // Check for pulldown patterns
+      if (videoInfo.match(/pulldown/i) || videoInfo.match(/repeat headers/i)) {
+        scanDetails.push('Pulldown');
+      }
+
+      // Check for progressive
+      const isProgressive = videoInfo.match(/progressive/i);
+      const isInterlaced = videoInfo.match(/interlaced|tff|bff|top first|bottom first|mbaff/i);
+
+      if (isInterlaced) {
+        scanType = 'Interlaced';
+        if (scanDetails.length > 0) {
+          scanType += ` (${scanDetails.join(', ')})`;
+        }
+      } else if (isProgressive) {
+        scanType = 'Progressive';
+      } else {
+        // If we have scan details but didn't match "interlaced" explicitly, it's likely interlaced
+        if (scanDetails.length > 0) {
+          scanType = `Interlaced (${scanDetails.join(', ')})`;
+        } else {
+          // Default to Progressive if not explicitly interlaced
+          scanType = 'Progressive';
+        }
+      }
+    }
     
     // Parse resolution
     const resolutionMatch = output.match(/Stream.*Video.*?[,\s](\d{2,5})x(\d{2,5})[,\s]/i);
@@ -56,7 +132,7 @@ export async function extractVideoMetadata(filePath: string): Promise<{
       logger.warn('Could not parse FPS from ffmpeg output');
     }
     
-    return { resolution, fps };
+    return { resolution, fps, pixelFormat, codec, container, scanType, colorSpace };
   } catch (probeError) {
     logger.error('Error extracting video metadata with ffmpeg:', probeError);
     return {};
