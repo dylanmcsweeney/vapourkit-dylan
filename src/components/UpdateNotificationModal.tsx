@@ -39,7 +39,17 @@ export const UpdateNotificationModal: React.FC<UpdateNotificationModalProps> = (
   // Parse markdown-style changelog to basic formatting
   const formatChangelog = (text: string): JSX.Element[] => {
     const lines = text.split('\n');
-    return lines.map((line, index) => {
+    const clippedLines: string[] = [];
+    
+    // Stop processing when encountering "------------"
+    for (const line of lines) {
+      if (line.trim().startsWith('---')) {
+        break;
+      }
+      clippedLines.push(line);
+    }
+    
+    return clippedLines.map((line, index) => {
       // Headers
       if (line.startsWith('### ')) {
         return (
