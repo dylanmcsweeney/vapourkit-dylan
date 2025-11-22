@@ -118,6 +118,7 @@ function App() {
     handleSelectOutputFile,
     handleUpscale,
     handleCancelUpscale,
+    handleForceStop,
     handleOpenOutputFolder,
     handleCompareVideos,
     handleVideoError,
@@ -199,6 +200,7 @@ function App() {
   useQueueProcessing({
     queue,
     isQueueStarted: queueState.isQueueStarted,
+    isQueueStopping: queueState.isQueueStopping,
     isProcessingQueueItem: queueState.isProcessingQueueItem,
     isProcessingQueue: queueState.isProcessingQueue,
     isProcessing,
@@ -653,6 +655,17 @@ function App() {
 
               {/* Action Buttons */}
               <div className="flex-shrink-0 flex gap-2">
+                {/* Force Stop Button - Only visible when stuck */}
+                {!isProcessing && upscaleProgress && upscaleProgress.type === 'progress' && (
+                   <button
+                     onClick={handleForceStop}
+                     className="bg-red-900/50 hover:bg-red-800 text-red-200 px-4 rounded-xl border border-red-700/50 transition-colors flex items-center gap-2"
+                     title="Force stop stuck process"
+                   >
+                     <XCircle className="w-5 h-5" />
+                   </button>
+                )}
+
                 {queueState.showQueue ? (
                   <button
                     onClick={queueState.isQueueStarted ? handleStopQueue : handleStartQueue}

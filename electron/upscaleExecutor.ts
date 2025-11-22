@@ -564,4 +564,31 @@ export class UpscaleExecutor {
       this.isCanceling = false;
     }, 14000); // After all possible timeouts (10s + 3s + buffer)
   }
+
+  kill() {
+    logger.upscale('Force killing upscale process');
+    this.isCanceling = true;
+
+    if (this.process) {
+      logger.upscale('Force killing vspipe');
+      try {
+        this.process.kill('SIGKILL');
+      } catch (e) {
+        logger.error('Error killing vspipe:', e);
+      }
+      this.process = null;
+    }
+
+    if (this.ffmpegProcess) {
+      logger.upscale('Force killing ffmpeg');
+      try {
+        this.ffmpegProcess.kill('SIGKILL');
+      } catch (e) {
+        logger.error('Error killing ffmpeg:', e);
+      }
+      this.ffmpegProcess = null;
+    }
+    
+    this.isCanceling = false;
+  }
 }

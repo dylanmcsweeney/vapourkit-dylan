@@ -227,6 +227,17 @@ export function useVideoProcessing({ outputFormat, onLog }: UseVideoProcessingPr
     }
   };
 
+  const handleForceStop = async (): Promise<void> => {
+    onLog('Force stopping upscale process...');
+    setIsStopping(true);
+    await window.electronAPI.killUpscale();
+    setIsProcessing(false);
+    setIsStopping(false);
+    setUpscaleProgress(null);
+    setPreviewFrame(null);
+    onLog('Upscale process force stopped');
+  };
+
   const handleOpenOutputFolder = async (): Promise<void> => {
     if (completedVideoPath) {
       try {
@@ -278,6 +289,7 @@ export function useVideoProcessing({ outputFormat, onLog }: UseVideoProcessingPr
     handleSelectOutputFile,
     handleUpscale,
     handleCancelUpscale,
+    handleForceStop,
     handleOpenOutputFolder,
     handleCompareVideos,
     handleVideoError,

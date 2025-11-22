@@ -46,6 +46,7 @@ export interface ElectronAPI {
     numStreams?: number
   ) => Promise<UpscaleResult>;
   cancelUpscale: () => Promise<{ success: boolean }>;
+  killUpscale: () => Promise<{ success: boolean }>;
   onUpscaleProgress: (callback: (progress: UpscaleProgress) => void) => () => void;
   openOutputFolder: (filePath: string) => Promise<void>;
   compareVideos: (inputPath: string, outputPath: string) => Promise<{ success: boolean; error?: string }>;

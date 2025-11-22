@@ -45,6 +45,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   startUpscale: (videoPath: string, modelPath: string, outputPath: string, useDirectML?: boolean, upscalingEnabled?: boolean, filters?: any, upscalePosition?: number, numStreams?: number) => 
     ipcRenderer.invoke('start-upscale', videoPath, modelPath, outputPath, useDirectML, upscalingEnabled, filters, upscalePosition, numStreams),
   cancelUpscale: () => ipcRenderer.invoke('cancel-upscale'),
+  killUpscale: () => ipcRenderer.invoke('kill-upscale'),
   onUpscaleProgress: (callback: (progress: any) => void) => {
     const listener = (event: any, progress: any) => callback(progress);
     ipcRenderer.on('upscale-progress', listener);

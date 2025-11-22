@@ -211,6 +211,16 @@ export function registerVideoHandlers(
     return { success: true };
   });
 
+  ipcMain.handle('kill-upscale', async () => {
+    logger.upscale('Force killing upscale process');
+    if (upscaleExecutor) {
+      upscaleExecutor.kill();
+      upscaleExecutor = null;
+      logger.upscale('Upscale force killed');
+    }
+    return { success: true };
+  });
+
   ipcMain.handle('compare-videos', async (event, inputPath: string, outputPath: string) => {
     logger.info(`Launching video comparison tool`);
     logger.info(`Input: ${inputPath}`);

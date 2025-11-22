@@ -7,6 +7,7 @@ import { getErrorMessage } from '../types/errors';
 interface UseQueueProcessingOptions {
   queue: QueueItem[];
   isQueueStarted: boolean;
+  isQueueStopping: boolean;
   isProcessingQueueItem: boolean;
   isProcessingQueue: boolean;
   isProcessing: boolean;
@@ -25,6 +26,7 @@ export function useQueueProcessing(options: UseQueueProcessingOptions) {
   const {
     queue,
     isQueueStarted,
+    isQueueStopping,
     isProcessingQueueItem,
     isProcessingQueue,
     isProcessing,
@@ -42,8 +44,8 @@ export function useQueueProcessing(options: UseQueueProcessingOptions) {
   // Process queue sequentially
   useEffect(() => {
     const processNextInQueue = async () => {
-      // Don't start new item if already processing one or queue hasn't been started
-      if (isProcessingQueueItem || !isQueueStarted) return;
+      // Don't start new item if already processing one, queue hasn't been started, or is stopping
+      if (isProcessingQueueItem || !isQueueStarted || isQueueStopping) return;
       
       const nextItem = getNextPendingItem();
       if (!nextItem) {
@@ -113,11 +115,11 @@ export function useQueueProcessing(options: UseQueueProcessingOptions) {
     };
 
     // Try to process next item when queue changes or item finishes processing
-    if (isQueueStarted && !isProcessingQueueItem && queue.some(item => item.status === 'pending')) {
+    if (isQueueStarted && !isProcessingQueueItem && !isQueueStopping && queue.some(item => item.status === 'pending')) {
       processNextInQueue();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [queue, isProcessingQueueItem, isProcessingQueue, isQueueStarted]);
+  }, [queue, isProcessingQueueItem, isProcessingQueue, isQueueStarted, isQueueStopping]);
 
   // Update queue item progress based on upscale progress
   useEffect(() => {

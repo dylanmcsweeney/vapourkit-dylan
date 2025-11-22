@@ -104,23 +104,27 @@ export function useQueueHandlers(options: UseQueueHandlersOptions) {
     setIsQueueStopping(true);
     onLog('Stopping queue processing...');
     
-    // Cancel current processing if any
-    if (isProcessingQueueItem) {
-      await handleCancelUpscale();
+    try {
+      // Cancel current processing if any
+      if (isProcessingQueueItem) {
+        await handleCancelUpscale();
+      }
+    } catch (error) {
+      onLog(`Error stopping queue: ${getErrorMessage(error)}`);
+    } finally {
+      setIsQueueStarted(false);
+      setIsProcessingQueue(false);
+      setIsProcessingQueueItem(false);
+      
+      // Reset any processing items back to pending
+      const processingItem = queue.find(item => item.status === 'processing');
+      if (processingItem) {
+        updateQueueItem(processingItem.id, { status: 'pending', progress: 0 });
+      }
+      
+      setIsQueueStopping(false);
+      onLog('Queue stopped');
     }
-    
-    setIsQueueStarted(false);
-    setIsProcessingQueue(false);
-    setIsProcessingQueueItem(false);
-    
-    // Reset any processing items back to pending
-    const processingItem = queue.find(item => item.status === 'processing');
-    if (processingItem) {
-      updateQueueItem(processingItem.id, { status: 'pending', progress: 0 });
-    }
-    
-    setIsQueueStopping(false);
-    onLog('Queue stopped');
   };
 
   const handleCancelQueueItem = async (itemId: string): Promise<void> => {
@@ -138,8 +142,10 @@ export function useQueueHandlers(options: UseQueueHandlersOptions) {
       errorMessage: 'Canceled by user',
     });
     
-    // Clear the processing flag so next item can start
-    setIsProcessingQueueItem(false);
+    // Do NOT clear the processing flag here.
+    // The useQueueProcessing hook will handle it when the startUpscale promise rejects/returns.
+    // Clearing it here causes a race condition where the next item starts before the current one finishes cleaning up.
+    // setIsProcessingQueueItem(false);
   };
 
   const handleRequeueItem = (itemId: string): void => {
