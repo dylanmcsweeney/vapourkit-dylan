@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Sparkles, Github, Heart, X, FileText, ChevronDown, ChevronUp } from 'lucide-react';
+import { Sparkles, Github, Heart, X, FileText, ChevronDown, ChevronUp, Book } from 'lucide-react';
 
 interface AboutModalProps {
   show: boolean;
@@ -124,6 +124,16 @@ export const AboutModal: React.FC<AboutModalProps> = ({ show, onClose }) => {
               <Github className="w-5 h-5 text-gray-400 group-hover:text-primary-purple transition-colors" />
               <div className="flex-1 text-left">
                 <p className="text-sm font-medium text-white">View Vapourkit on GitHub</p>
+              </div>
+            </button>
+
+            <button
+              onClick={() => openExternal('https://github.com/Kim2091/vapourkit/tree/main/docs')}
+              className="w-full bg-dark-surface hover:bg-dark-bg border border-gray-700 hover:border-primary-blue rounded-lg px-4 py-3 transition-all duration-300 flex items-center gap-3 group"
+            >
+              <Book className="w-5 h-5 text-gray-400 group-hover:text-primary-blue transition-colors" />
+              <div className="flex-1 text-left">
+                <p className="text-sm font-medium text-white">View Documentation</p>
               </div>
             </button>
 

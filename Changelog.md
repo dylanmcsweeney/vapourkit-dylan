@@ -55,7 +55,7 @@
 - Add section for license information of included models
 - Add link to GitHub page in About window
 
-## 0.9.5 and 0.9.6
+## 0.10.0
 - Add batch video processing support
 - Add ability to launch comparisons in from queue list
 - Add experimental update checker
@@ -66,3 +66,7 @@
 - Update zsmooth plugin to 0.14
 - Overhaul internal code for start/stop processing button
 - Redesign "Show Queue" button and change location
+- Overhaul Video Info Panel
+- Add documentation for Batch Processing
+- Shrink queue panel and clean up unused files
+- Fix color scheme of syntax highlighting
