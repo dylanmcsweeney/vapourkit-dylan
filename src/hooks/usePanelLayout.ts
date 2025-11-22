@@ -4,10 +4,11 @@ import { getErrorMessage } from '../types/errors';
 interface PanelSizes {
   leftPanel: number;
   rightPanel: number;
+  queuePanel?: number;
 }
 
 export function usePanelLayout(isSetupComplete: boolean, onLog: (message: string) => void) {
-  const [panelSizes, setPanelSizes] = useState<PanelSizes>({ leftPanel: 50, rightPanel: 50 });
+  const [panelSizes, setPanelSizes] = useState<PanelSizes>({ leftPanel: 60, rightPanel: 40, queuePanel: 25 });
   const [panelSizesLoaded, setPanelSizesLoaded] = useState(false);
 
   // Load panel sizes from backend
@@ -15,7 +16,11 @@ export function usePanelLayout(isSetupComplete: boolean, onLog: (message: string
     const loadPanelSizes = async () => {
       try {
         const sizes = await window.electronAPI.getPanelSizes();
-        setPanelSizes(sizes);
+        setPanelSizes({
+          leftPanel: sizes.leftPanel || 60,
+          rightPanel: sizes.rightPanel || 40,
+          queuePanel: sizes.queuePanel || 25
+        });
         setPanelSizesLoaded(true);
       } catch (error) {
         onLog(`Error loading panel sizes: ${getErrorMessage(error)}`);
@@ -29,22 +34,36 @@ export function usePanelLayout(isSetupComplete: boolean, onLog: (message: string
   }, [isSetupComplete, onLog]);
 
   // Save panel sizes when they change (with debouncing)
-  const handlePanelResize = useCallback((sizes: number[]) => {
-    const [leftPanel, rightPanel] = sizes;
-    const newSizes = { leftPanel, rightPanel };
-    setPanelSizes(newSizes);
-    
-    // Debounce the save operation
+  useEffect(() => {
+    if (!panelSizesLoaded) return;
+
     const timeoutId = setTimeout(async () => {
       try {
-        await window.electronAPI.setPanelSizes(newSizes);
+        await window.electronAPI.setPanelSizes(panelSizes);
       } catch (error) {
         onLog(`Error saving panel sizes: ${getErrorMessage(error)}`);
       }
     }, 500);
     
     return () => clearTimeout(timeoutId);
-  }, [onLog]);
+  }, [panelSizes, panelSizesLoaded, onLog]);
+
+  const handlePanelResize = useCallback((sizes: number[]) => {
+    setPanelSizes(prev => {
+      if (sizes.length === 3) {
+        const [leftPanel, rightPanel, queuePanel] = sizes;
+        return { leftPanel, rightPanel, queuePanel };
+      } else if (sizes.length === 2) {
+        const [leftPanel, rightPanel] = sizes;
+        return { 
+          leftPanel, 
+          rightPanel, 
+          queuePanel: prev.queuePanel || 25 
+        };
+      }
+      return prev;
+    });
+  }, []);
 
   return {
     panelSizes,

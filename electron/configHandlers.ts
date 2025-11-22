@@ -28,9 +28,20 @@ export function registerConfigHandlers(mainWindow: BrowserWindow | null) {
     return sizes;
   });
 
-  ipcMain.handle('set-panel-sizes', async (event, sizes: { leftPanel: number; rightPanel: number }) => {
-    logger.debug(`Setting panel sizes: left=${sizes.leftPanel}, right=${sizes.rightPanel}`);
+  ipcMain.handle('set-panel-sizes', async (event, sizes: { leftPanel: number; rightPanel: number; queuePanel?: number }) => {
+    logger.debug(`Setting panel sizes: left=${sizes.leftPanel}, right=${sizes.rightPanel}, queue=${sizes.queuePanel}`);
     await configManager.setPanelSizes(sizes);
+    return { success: true };
+  });
+
+  ipcMain.handle('get-show-queue', async () => {
+    const show = configManager.getShowQueue();
+    return { show };
+  });
+
+  ipcMain.handle('set-show-queue', async (event, show: boolean) => {
+    logger.debug(`Setting show queue: ${show}`);
+    await configManager.setShowQueue(show);
     return { success: true };
   });
 

@@ -115,7 +115,7 @@ export function useQueueProcessing(options: UseQueueProcessingOptions) {
     };
 
     // Try to process next item when queue changes or item finishes processing
-    if (isQueueStarted && !isProcessingQueueItem && !isQueueStopping && queue.some(item => item.status === 'pending')) {
+    if (isQueueStarted && !isProcessingQueueItem && !isQueueStopping) {
       processNextInQueue();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps

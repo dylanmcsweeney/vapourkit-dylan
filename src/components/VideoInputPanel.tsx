@@ -1,4 +1,4 @@
-import { Upload, Video, List } from 'lucide-react';
+import { Upload, Video, List, PanelRightOpen, PanelRightClose } from 'lucide-react';
 import type { VideoInfo } from '../electron.d';
 
 interface VideoInputPanelProps {
@@ -35,15 +35,16 @@ export function VideoInputPanel({
         </div>
         <button
           onClick={onToggleQueue}
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-lg transition-all ${
+          className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg transition-all border ${
             showQueue
-              ? 'bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-500/50 text-blue-300'
-              : 'bg-dark-surface hover:bg-dark-bg border border-gray-700 text-gray-400 hover:text-gray-300'
+              ? 'bg-blue-500/10 border-blue-500/50 text-blue-400'
+              : 'bg-dark-surface hover:bg-dark-bg border-gray-700 text-gray-400 hover:text-gray-300'
           }`}
           title={showQueue ? 'Hide queue' : 'Show queue'}
         >
           <List className="w-3.5 h-3.5" />
-          {queueCount > 0 && <span className="font-medium">{queueCount}</span>}
+          <span>Queue {queueCount > 0 && `(${queueCount})`}</span>
+          {showQueue ? <PanelRightClose className="w-3.5 h-3.5" /> : <PanelRightOpen className="w-3.5 h-3.5" />}
         </button>
       </div>
       

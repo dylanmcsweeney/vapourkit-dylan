@@ -1,7 +1,7 @@
 // src/App.tsx - Refactored with extracted components and hooks
 
 import { useState, useEffect, useRef } from 'react';
-import { Sparkles, XCircle, ChevronDown, ChevronUp, Terminal, Loader2, List } from 'lucide-react';
+import { Sparkles, XCircle, ChevronDown, ChevronUp, Terminal, Loader2, List, PanelRightOpen, PanelRightClose } from 'lucide-react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { ImportModelModal } from './components/ImportModelModal';
 import { AboutModal } from './components/AboutModal';
@@ -99,7 +99,7 @@ function App() {
   const [showUpdateModal, setShowUpdateModal] = useState(false);
 
   // Queue management state and handlers
-  const { state: queueState, actions: queueActions } = useQueueState();
+  const { state: queueState, actions: queueActions } = useQueueState(addConsoleLog);
 
   // Video processing hooks
   const {
@@ -122,6 +122,8 @@ function App() {
     handleOpenOutputFolder,
     handleCompareVideos,
     handleVideoError,
+    loadCompletedVideo,
+    setCompletedVideoPath,
   } = useVideoProcessing({ outputFormat, onLog: addConsoleLog });
   
   // Queue management hook
@@ -168,6 +170,8 @@ function App() {
     handleStopQueue,
     handleCancelQueueItem,
     handleRequeueItem,
+    handleCompareQueueItem,
+    handleOpenQueueItemFolder,
   } = useQueueHandlers({
     queue,
     editingQueueItemId: queueState.editingQueueItemId,
@@ -194,6 +198,8 @@ function App() {
     setOutputPath,
     handleCancelUpscale,
     onLog: addConsoleLog,
+    loadCompletedVideo,
+    setCompletedVideoPath,
   });
 
   // Queue processing effects
@@ -770,24 +776,6 @@ function App() {
                   </button>
                 )}
               </div>
-              
-              {/* Queue Panel Toggle Button */}
-              {queue.length > 0 && (
-                <button
-                  onClick={() => queueActions.setShowQueue(!queueState.showQueue)}
-                  className={`flex-shrink-0 w-full px-4 py-3 rounded-xl transition-all border flex items-center justify-between ${
-                    queueState.showQueue 
-                      ? 'bg-gradient-to-r from-blue-900/30 to-purple-900/30 border-blue-500/50' 
-                      : 'bg-dark-surface hover:bg-dark-bg border-gray-800'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <List className="w-4 h-4" />
-                    <span className="text-sm font-medium">Queue ({queue.length} video{queue.length !== 1 ? 's' : ''})</span>
-                  </div>
-                  <ChevronDown className={`w-5 h-5 transition-transform ${queueState.showQueue ? 'rotate-180' : ''}`} />
-                </button>
-              )}
             </div>
           </Panel>
           
@@ -807,6 +795,8 @@ function App() {
                   onReorder={reorderQueue}
                   onCancelItem={handleCancelQueueItem}
                   onRequeueItem={handleRequeueItem}
+                  onCompareItem={handleCompareQueueItem}
+                  onOpenItemFolder={handleOpenQueueItemFolder}
                 />
               </Panel>
             </>

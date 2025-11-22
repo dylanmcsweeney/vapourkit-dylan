@@ -1,6 +1,6 @@
 // src/hooks/useQueueState.ts - Queue UI state management
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export interface QueueState {
   showQueue: boolean;
@@ -20,13 +20,33 @@ export interface QueueStateActions {
   setIsProcessingQueueItem: (processing: boolean) => void;
 }
 
-export function useQueueState() {
+export function useQueueState(onLog?: (message: string) => void) {
   const [showQueue, setShowQueue] = useState(false);
   const [editingQueueItemId, setEditingQueueItemId] = useState<string | null>(null);
   const [isProcessingQueue, setIsProcessingQueue] = useState(false);
   const [isQueueStarted, setIsQueueStarted] = useState(false);
   const [isQueueStopping, setIsQueueStopping] = useState(false);
   const [isProcessingQueueItem, setIsProcessingQueueItem] = useState(false);
+
+  // Load showQueue state
+  useEffect(() => {
+    const loadState = async () => {
+      try {
+        const result = await window.electronAPI.getShowQueue();
+        setShowQueue(result.show);
+      } catch (error) {
+        if (onLog) onLog(`Error loading queue state: ${error}`);
+      }
+    };
+    loadState();
+  }, [onLog]);
+
+  const handleSetShowQueue = (show: boolean) => {
+    setShowQueue(show);
+    window.electronAPI.setShowQueue(show).catch(error => {
+      if (onLog) onLog(`Error saving queue state: ${error}`);
+    });
+  };
 
   return {
     state: {
@@ -38,7 +58,7 @@ export function useQueueState() {
       isProcessingQueueItem,
     },
     actions: {
-      setShowQueue,
+      setShowQueue: handleSetShowQueue,
       setEditingQueueItemId,
       setIsProcessingQueue,
       setIsQueueStarted,

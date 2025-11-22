@@ -29,6 +29,8 @@ interface UseQueueHandlersOptions {
   setOutputPath: (path: string) => void;
   handleCancelUpscale: () => Promise<void>;
   onLog: (message: string) => void;
+  loadCompletedVideo?: (path: string) => Promise<void>;
+  setCompletedVideoPath?: (path: string | null) => void;
 }
 
 export function useQueueHandlers(options: UseQueueHandlersOptions) {
@@ -58,11 +60,45 @@ export function useQueueHandlers(options: UseQueueHandlersOptions) {
     setOutputPath,
     handleCancelUpscale,
     onLog,
+    loadCompletedVideo,
+    setCompletedVideoPath,
   } = options;
 
   const handleSelectQueueItem = async (itemId: string): Promise<void> => {
     const item = queue.find(q => q.id === itemId);
-    if (!item || item.status !== 'pending') return;
+    if (!item) return;
+
+    // Handle completed item selection
+    if (item.status === 'completed') {
+      if (loadCompletedVideo && setCompletedVideoPath) {
+        try {
+          // Load video info first (resets state)
+          await loadVideoInfo(item.videoPath);
+          setOutputPath(item.outputPath);
+          
+          // Set completed state
+          setCompletedVideoPath(item.outputPath);
+          await loadCompletedVideo(item.outputPath);
+          
+          // Load the workflow settings so the UI reflects what was used
+          setSelectedModel(item.workflow.selectedModel || '');
+          setFilters(item.workflow.filters);
+          setOutputFormat(item.workflow.outputFormat);
+          toggleDirectML(item.workflow.useDirectML);
+          updateNumStreams(item.workflow.numStreams);
+          
+          // Clear editing state if we were editing something
+          setEditingQueueItemId(null);
+          
+          onLog(`Loaded completed queue item: ${item.videoName}`);
+        } catch (error) {
+          onLog(`Error loading completed item: ${getErrorMessage(error)}`);
+        }
+      }
+      return;
+    }
+
+    if (item.status !== 'pending') return;
     
     // Auto-save current workflow to the currently editing queue item if any
     if (editingQueueItemId) {
@@ -152,11 +188,40 @@ export function useQueueHandlers(options: UseQueueHandlersOptions) {
     requeueItem(itemId);
   };
 
+  const handleCompareQueueItem = async (itemId: string): Promise<void> => {
+    const item = queue.find(q => q.id === itemId);
+    if (!item || item.status !== 'completed') return;
+    
+    try {
+      onLog(`Launching comparison for queue item: ${item.videoName}`);
+      const result = await window.electronAPI.compareVideos(item.videoPath, item.outputPath);
+      if (!result.success) {
+        onLog(`Error: ${result.error}`);
+      }
+    } catch (error) {
+      onLog(`Error launching comparison: ${getErrorMessage(error)}`);
+    }
+  };
+
+  const handleOpenQueueItemFolder = async (itemId: string): Promise<void> => {
+    const item = queue.find(q => q.id === itemId);
+    if (!item || item.status !== 'completed') return;
+    
+    try {
+      onLog(`Opening folder for queue item: ${item.outputPath}`);
+      await window.electronAPI.openOutputFolder(item.outputPath);
+    } catch (error) {
+      onLog(`Error opening folder: ${getErrorMessage(error)}`);
+    }
+  };
+
   return {
     handleSelectQueueItem,
     handleStartQueue,
     handleStopQueue,
     handleCancelQueueItem,
     handleRequeueItem,
+    handleCompareQueueItem,
+    handleOpenQueueItemFolder,
   };
 }

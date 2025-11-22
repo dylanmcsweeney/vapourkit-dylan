@@ -293,5 +293,7 @@ export function useVideoProcessing({ outputFormat, onLog }: UseVideoProcessingPr
     handleOpenOutputFolder,
     handleCompareVideos,
     handleVideoError,
+    loadCompletedVideo,
+    setCompletedVideoPath,
   };
 }

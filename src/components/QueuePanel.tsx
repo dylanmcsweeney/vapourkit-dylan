@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { List, Trash2, ChevronUp, ChevronDown, PlayCircle, XCircle, RotateCcw } from 'lucide-react';
+import { List, Trash2, ChevronUp, ChevronDown, PlayCircle, XCircle, RotateCcw, FolderOpen, SplitSquareHorizontal } from 'lucide-react';
 import type { QueueItem } from '../electron.d';
 
 interface QueuePanelProps {
@@ -13,6 +13,8 @@ interface QueuePanelProps {
   onReorder: (fromIndex: number, toIndex: number) => void;
   onCancelItem: (itemId: string) => void;
   onRequeueItem: (itemId: string) => void;
+  onCompareItem: (itemId: string) => void;
+  onOpenItemFolder: (itemId: string) => void;
 }
 
 export function QueuePanel({
@@ -26,6 +28,8 @@ export function QueuePanel({
   onReorder,
   onCancelItem,
   onRequeueItem,
+  onCompareItem,
+  onOpenItemFolder,
 }: QueuePanelProps) {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -129,7 +133,7 @@ export function QueuePanel({
             {queue.map((item, index) => {
               const isEditing = editingItemId === item.id;
               const isPending = item.status === 'pending';
-              const isClickable = isPending;
+              const isClickable = isPending || item.status === 'completed';
               const isDraggable = isPending && !isQueueStarted;
               const isDragging = draggedIndex === index;
               const isOver = dragOverIndex === index;
@@ -153,7 +157,7 @@ export function QueuePanel({
                     : item.status === 'processing'
                     ? 'border-blue-500 shadow-lg shadow-blue-500/20'
                     : item.status === 'completed'
-                    ? 'border-green-800'
+                    ? 'border-green-800 hover:border-green-700'
                     : item.status === 'error'
                     ? 'border-red-800'
                     : 'border-gray-800 hover:border-gray-700'
@@ -241,6 +245,34 @@ export function QueuePanel({
                     <div className="text-xs text-gray-600 mt-1">
                       Added {formatDate(item.addedAt)}
                     </div>
+
+                    {/* Completed Item Actions */}
+                    {item.status === 'completed' && (
+                      <div className="flex gap-1 mt-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onCompareItem(item.id);
+                          }}
+                          className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1 text-xs bg-dark-bg hover:bg-dark-elevated border border-gray-700 rounded transition-colors"
+                          title="Compare with original"
+                        >
+                          <SplitSquareHorizontal className="w-3 h-3" />
+                          Compare
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenItemFolder(item.id);
+                          }}
+                          className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1 text-xs bg-dark-bg hover:bg-dark-elevated border border-gray-700 rounded transition-colors"
+                          title="Open output folder"
+                        >
+                          <FolderOpen className="w-3 h-3" />
+                          Folder
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   {/* Actions */}

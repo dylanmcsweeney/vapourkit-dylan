@@ -77,8 +77,12 @@ export interface ElectronAPI {
   getDefaultFfmpegArgs: () => Promise<{ args: string }>;
   
   // Panel sizes
-  getPanelSizes: () => Promise<{ leftPanel: number; rightPanel: number }>;
-  setPanelSizes: (sizes: { leftPanel: number; rightPanel: number }) => Promise<{ success: boolean }>;
+  getPanelSizes: () => Promise<{ leftPanel: number; rightPanel: number; queuePanel?: number }>;
+  setPanelSizes: (sizes: { leftPanel: number; rightPanel: number; queuePanel?: number }) => Promise<{ success: boolean }>;
+  
+  // Queue UI state
+  getShowQueue: () => Promise<{ show: boolean }>;
+  setShowQueue: (show: boolean) => Promise<{ success: boolean }>;
   
   // Filter presets
   getFilterPresets: () => Promise<{ prefilterPreset: string; postfilterPreset: string }>;

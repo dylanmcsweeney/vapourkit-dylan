@@ -28,7 +28,9 @@ interface AppConfig {
   panelSizes?: {
     leftPanel: number;
     rightPanel: number;
+    queuePanel?: number;
   };
+  showQueue?: boolean;
   filterPresets?: {
     prefilterPreset: string;
     postfilterPreset: string;
@@ -60,8 +62,10 @@ const DEFAULT_CONFIG: AppConfig = {
   },
   panelSizes: {
     leftPanel: 60,
-    rightPanel: 40
+    rightPanel: 40,
+    queuePanel: 25
   },
+  showQueue: false,
   filterPresets: {
     prefilterPreset: '',
     postfilterPreset: ''
@@ -177,12 +181,21 @@ export class ConfigManager {
     await this.save();
   }
 
-  getPanelSizes(): { leftPanel: number; rightPanel: number } {
+  getPanelSizes(): { leftPanel: number; rightPanel: number; queuePanel?: number } {
     return this.config.panelSizes || DEFAULT_CONFIG.panelSizes!;
   }
 
-  async setPanelSizes(sizes: { leftPanel: number; rightPanel: number }): Promise<void> {
-    this.config.panelSizes = sizes;
+  async setPanelSizes(sizes: { leftPanel: number; rightPanel: number; queuePanel?: number }): Promise<void> {
+    this.config.panelSizes = { ...this.config.panelSizes, ...sizes };
+    await this.save();
+  }
+
+  getShowQueue(): boolean {
+    return this.config.showQueue ?? false;
+  }
+
+  async setShowQueue(show: boolean): Promise<void> {
+    this.config.showQueue = show;
     await this.save();
   }
 
