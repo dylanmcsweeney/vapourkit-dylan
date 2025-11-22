@@ -115,7 +115,6 @@ function App() {
     completedVideoBlobUrl,
     videoLoadError,
     loadVideoInfo,
-    handleSelectVideo,
     handleSelectOutputFile,
     handleUpscale,
     handleCancelUpscale,

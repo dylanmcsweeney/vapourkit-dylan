@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X, Download, RefreshCw, CheckCircle, XCircle, Loader2, Terminal, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface PluginDependencyProgress {
-  type: 'installing' | 'complete' | 'error';
+  type: 'download' | 'extract' | 'install' | 'complete' | 'error';
   progress: number;
   message: string;
+  package?: string;
 }
 
 interface PluginsModalProps {
