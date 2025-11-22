@@ -19,7 +19,7 @@ export const UpdateNotificationModal: React.FC<UpdateNotificationModalProps> = (
   updateInfo, 
   onClose 
 }) => {
-  const [changelogExpanded, setChangelogExpanded] = useState(false);
+  const [changelogExpanded, setChangelogExpanded] = useState(true);
 
   if (!updateInfo || !updateInfo.available) return null;
 
