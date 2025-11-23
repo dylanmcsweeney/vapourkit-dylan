@@ -65,8 +65,13 @@
 - Fix processing bug with batch processing
 - Update zsmooth plugin to 0.14
 - Overhaul internal code for start/stop processing button
-- Redesign "Show Queue" button and change location
 - Overhaul Video Info Panel
 - Add documentation for Batch Processing
 - Shrink queue panel and clean up unused files
 - Fix color scheme of syntax highlighting
+
+## 0.10.1
+- Redesign "Show Queue" button and change location
+- Allow the user to change the color space the output video is saved in
+- Rework the Settings menu to be easier to use
+- Fix the way videos are displayed when processing is complete
