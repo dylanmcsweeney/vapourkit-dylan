@@ -34,7 +34,12 @@ app.whenReady().then(() => {
   
   // Register custom video protocol
   protocol.registerFileProtocol('video', (request, callback) => {
-    const url = request.url.replace('video://', '');
+    let url = request.url.replace('video://', '');
+    // Strip query parameters (used for cache busting)
+    const queryIndex = url.indexOf('?');
+    if (queryIndex !== -1) {
+      url = url.substring(0, queryIndex);
+    }
     const decodedPath = decodeURIComponent(url);
     logger.debug(`Video protocol request: ${decodedPath}`);
     callback({ path: decodedPath });

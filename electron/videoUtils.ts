@@ -12,6 +12,7 @@ export async function extractVideoMetadata(filePath: string): Promise<{
   container?: string;
   scanType?: string;
   colorSpace?: string;
+  duration?: string;
 }> {
   try {
     const { execFile } = require('child_process');
@@ -46,6 +47,7 @@ export async function extractVideoMetadata(filePath: string): Promise<{
     let container: string | undefined;
     let scanType: string = 'Unknown';
     let colorSpace: string | undefined;
+    let duration: string | undefined;
     
     // Parse container
     const containerMatch = output.match(/Input #0, ([\w,]+),/);
@@ -132,7 +134,16 @@ export async function extractVideoMetadata(filePath: string): Promise<{
       logger.warn('Could not parse FPS from ffmpeg output');
     }
     
-    return { resolution, fps, pixelFormat, codec, container, scanType, colorSpace };
+    // Parse duration (format: HH:MM:SS.ss)
+    const durationMatch = output.match(/Duration: (\d+:\d+:\d+\.\d+)/);
+    if (durationMatch) {
+      duration = durationMatch[1];
+      logger.info(`Parsed duration: ${duration}`);
+    } else {
+      logger.warn('Could not parse duration from ffmpeg output');
+    }
+    
+    return { resolution, fps, pixelFormat, codec, container, scanType, colorSpace, duration };
   } catch (probeError) {
     logger.error('Error extracting video metadata with ffmpeg:', probeError);
     return {};

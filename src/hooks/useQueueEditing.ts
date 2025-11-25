@@ -1,6 +1,7 @@
 // src/hooks/useQueueEditing.ts - Queue item editing effects
 
 import { useEffect } from 'react';
+import type { SegmentSelection } from '../electron.d';
 
 interface UseQueueEditingOptions {
   editingQueueItemId: string | null;
@@ -10,6 +11,7 @@ interface UseQueueEditingOptions {
   outputFormat: string;
   useDirectML: boolean;
   numStreams: number;
+  segment: SegmentSelection;
   setEditingQueueItemId: (id: string | null) => void;
   updateItemWorkflow: (id: string, workflow: any) => void;
   onLog: (message: string) => void;
@@ -24,6 +26,7 @@ export function useQueueEditing(options: UseQueueEditingOptions) {
     outputFormat,
     useDirectML,
     numStreams,
+    segment,
     setEditingQueueItemId,
     updateItemWorkflow,
     onLog,
@@ -39,6 +42,7 @@ export function useQueueEditing(options: UseQueueEditingOptions) {
       outputFormat,
       useDirectML,
       numStreams,
+      segment: segment.enabled ? { ...segment } : undefined,
     };
     
     // Debounce auto-save to avoid excessive updates
@@ -47,7 +51,7 @@ export function useQueueEditing(options: UseQueueEditingOptions) {
     }, 500);
     
     return () => clearTimeout(timeoutId);
-  }, [editingQueueItemId, selectedModel, filters, outputFormat, useDirectML, numStreams, updateItemWorkflow]);
+  }, [editingQueueItemId, selectedModel, filters, outputFormat, useDirectML, numStreams, segment, updateItemWorkflow]);
 
   // Close editing mode when queue panel closes
   useEffect(() => {

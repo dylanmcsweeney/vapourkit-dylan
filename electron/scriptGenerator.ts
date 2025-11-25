@@ -20,6 +20,12 @@ export interface Filter {
   modelType?: 'tspan' | 'image';
 }
 
+export interface SegmentSelection {
+  enabled: boolean;
+  startFrame: number;
+  endFrame: number; // -1 means end of video
+}
+
 export interface ScriptConfig {
   inputVideo: string;
   enginePath: string;
@@ -39,6 +45,7 @@ export interface ScriptConfig {
   filters?: Filter[];
   numStreams?: number;
   outputFormat?: string;
+  segment?: SegmentSelection;
 }
 
 export class VapourSynthScriptGenerator {
@@ -65,6 +72,23 @@ export class VapourSynthScriptGenerator {
     const enabledFilters = filters.filter(f => f.enabled).sort((a, b) => a.order - b.order);
     
     let filterCode = '';
+    
+    // Add segment trimming if enabled
+    if (config.segment?.enabled) {
+      const startFrame = config.segment.startFrame;
+      const endFrame = config.segment.endFrame;
+      
+      filterCode += '# Segment Selection (Trim)\n';
+      if (endFrame === -1) {
+        // Trim from start to end
+        filterCode += `clip = core.std.Trim(clip, first=${startFrame})\n`;
+        filterCode += `original_clip = core.std.Trim(original_clip, first=${startFrame})\n\n`;
+      } else {
+        // Trim from start to specific end frame
+        filterCode += `clip = core.std.Trim(clip, first=${startFrame}, last=${endFrame - 1})\n`;
+        filterCode += `original_clip = core.std.Trim(original_clip, first=${startFrame}, last=${endFrame - 1})\n\n`;
+      }
+    }
     
     for (const filter of enabledFilters) {
       if (filter.filterType === 'aiModel' && filter.modelPath) {

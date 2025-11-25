@@ -86,7 +86,7 @@ export class UpscaleExecutor {
     return this.vsInfoExtractor.getOutputInfo(scriptPath);
   }
 
-  async execute(scriptPath: string, outputPath: string, inputPath: string, totalFrames: number = 0): Promise<void> {
+  async execute(scriptPath: string, outputPath: string, inputPath: string, totalFrames: number = 0, previewMode: boolean = false): Promise<void> {
     return new Promise(async (resolve, reject) => {
       try {
         this.logExecutionStart(scriptPath, inputPath, outputPath, totalFrames);
@@ -106,7 +106,7 @@ export class UpscaleExecutor {
         
         // Spawn processes
         const vspipe = this.spawnVspipe(scriptPath, env, isRawVideo);
-        const ffmpegArgs = await this.buildFFmpegArgs(inputPath, outputPath, metadata, outputInfo);
+        const ffmpegArgs = await this.buildFFmpegArgs(inputPath, outputPath, metadata, outputInfo, previewMode);
         const ffmpeg = this.spawnFFmpeg(ffmpegArgs);
         
         this.setupProcessPiping(vspipe, ffmpeg);
@@ -224,7 +224,7 @@ export class UpscaleExecutor {
     });
   }
 
-  private async buildFFmpegArgs(inputPath: string, outputPath: string, metadata: VideoMetadata, outputInfo: OutputInfo): Promise<string[]> {
+  private async buildFFmpegArgs(inputPath: string, outputPath: string, metadata: VideoMetadata, outputInfo: OutputInfo, previewMode: boolean = false): Promise<string[]> {
     logger.upscale('Building FFmpeg command with metadata passthrough and preview output');
     const ffmpegConfig = await FFmpegSettingsManager.loadFFmpegConfig(configManager);
     
@@ -266,11 +266,13 @@ export class UpscaleExecutor {
       ffmpegArgs.push('-c:a', 'copy');
     }
 
-    // Map all subtitle streams from input
-    if (metadata.hasSubtitles) {
+    // Map all subtitle streams from input (skip in preview mode - MP4 doesn't support SRT subtitles)
+    if (metadata.hasSubtitles && !previewMode) {
       logger.upscale(`Mapping ${metadata.subtitleStreams} subtitle stream(s)`);
       ffmpegArgs.push('-map', '1:s?');
       ffmpegArgs.push('-c:s', 'copy');
+    } else if (metadata.hasSubtitles && previewMode) {
+      logger.upscale(`Skipping ${metadata.subtitleStreams} subtitle stream(s) in preview mode (MP4 compatibility)`);
     }
 
     // Add video encoding settings

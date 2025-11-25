@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { QueueItem, Filter } from '../electron.d';
+import type { QueueItem, Filter, SegmentSelection } from '../electron.d';
 
 interface UseQueueManagementProps {
   onLog: (message: string) => void;
@@ -72,11 +72,12 @@ export function useQueueManagement({ onLog }: UseQueueManagementProps) {
       outputFormat: string;
       useDirectML: boolean;
       numStreams: number;
+      segment?: SegmentSelection;
     },
     customOutputPath?: string
   ) => {
     const newItems: QueueItem[] = videoPaths.map(videoPath => {
-      const videoName = videoPath.split(/[\\/]/).pop() || 'unknown';
+      const videoName = videoPath.split(/[\\\\]/).pop() || 'unknown';
       
       // Generate output path
       let outputPath: string;
@@ -101,6 +102,7 @@ export function useQueueManagement({ onLog }: UseQueueManagementProps) {
           outputFormat: currentWorkflow.outputFormat,
           useDirectML: currentWorkflow.useDirectML,
           numStreams: currentWorkflow.numStreams,
+          segment: currentWorkflow.segment ? { ...currentWorkflow.segment } : undefined,
         },
       };
     });

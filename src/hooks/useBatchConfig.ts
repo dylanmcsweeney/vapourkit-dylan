@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { BatchVideoConfig } from '../components/BatchConfigModal';
+import type { SegmentSelection } from '../electron.d';
 import { getErrorMessage } from '../types/errors';
 
 interface UseBatchConfigOptions {
@@ -10,13 +11,14 @@ interface UseBatchConfigOptions {
   filters: any[];
   useDirectML: boolean;
   numStreams: number;
+  segment?: SegmentSelection;
   onAddToQueue: (videoPaths: string[], workflow: any, outputPath?: string) => void;
   onLoadVideoInfo: (path: string) => Promise<void>;
   onLog: (message: string) => void;
 }
 
 export function useBatchConfig(options: UseBatchConfigOptions) {
-  const { outputFormat, selectedModel, filters, useDirectML, numStreams, onAddToQueue, onLoadVideoInfo, onLog } = options;
+  const { outputFormat, selectedModel, filters, useDirectML, numStreams, segment, onAddToQueue, onLoadVideoInfo, onLog } = options;
   
   const [showBatchConfig, setShowBatchConfig] = useState(false);
   const [pendingBatchVideos, setPendingBatchVideos] = useState<BatchVideoConfig[]>([]);
@@ -48,6 +50,7 @@ export function useBatchConfig(options: UseBatchConfigOptions) {
         outputFormat,
         useDirectML,
         numStreams,
+        segment: segment?.enabled ? { ...segment } : undefined,
       };
       
       const configs: BatchVideoConfig[] = files.map((videoPath: string) => {

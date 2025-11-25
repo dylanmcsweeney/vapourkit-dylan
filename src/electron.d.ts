@@ -50,8 +50,19 @@ export interface ElectronAPI {
     upscalingEnabled?: boolean,
     filters?: Filter[],
     upscalePosition?: number,
-    numStreams?: number
+    numStreams?: number,
+    segment?: SegmentSelection
   ) => Promise<UpscaleResult>;
+  previewSegment: (
+    videoPath: string,
+    modelPath: string | null,
+    useDirectML?: boolean,
+    upscalingEnabled?: boolean,
+    filters?: Filter[],
+    numStreams?: number,
+    startFrame?: number,
+    endFrame?: number
+  ) => Promise<{ success: boolean; previewPath?: string; error?: string }>;
   cancelUpscale: () => Promise<{ success: boolean }>;
   killUpscale: () => Promise<{ success: boolean }>;
   onUpscaleProgress: (callback: (progress: UpscaleProgress) => void) => () => void;
@@ -277,6 +288,12 @@ export interface Filter {
   modelType?: 'tspan' | 'image';
 }
 
+export interface SegmentSelection {
+  enabled: boolean;
+  startFrame: number;
+  endFrame: number; // -1 means end of video
+}
+
 export interface ColorMatrixSettings {
   overwriteMatrix: boolean;
   matrix709: boolean;
@@ -347,6 +364,7 @@ export interface QueueItem {
     outputFormat: string;
     useDirectML: boolean;
     numStreams: number;
+    segment?: SegmentSelection;
   };
 }
 

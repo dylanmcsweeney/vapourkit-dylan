@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X, ChevronDown, ChevronUp } from 'lucide-react';
+import type { SegmentSelection } from '../electron.d';
 
 export interface BatchVideoConfig {
   videoPath: string;
@@ -11,6 +12,7 @@ export interface BatchVideoConfig {
     outputFormat: string;
     useDirectML: boolean;
     numStreams: number;
+    segment?: SegmentSelection;
   };
 }
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { VideoInfo, UpscaleProgress, Filter } from '../electron.d';
+import type { VideoInfo, UpscaleProgress, Filter, SegmentSelection } from '../electron.d';
 import { getErrorMessage } from '../types/errors';
 
 interface UseVideoProcessingProps {
@@ -23,9 +23,19 @@ export function useVideoProcessing({ outputFormat, onLog }: UseVideoProcessingPr
     try {
       onLog('Loading completed video for playback...');
       
+      // Reset state first to force the video element to reload
+      setCompletedVideoBlobUrl(null);
+      setVideoLoadError(false);
+      setPreviewFrame(null); // Clear preview frame so video player shows instead
+      
       // Use custom protocol to stream video directly from disk
       // This avoids loading the entire file into memory and bypasses size limits
-      const videoUrl = `video://${videoPath}`;
+      // Add timestamp to bust cache and ensure new video loads
+      const videoUrl = `video://${videoPath}?t=${Date.now()}`;
+      
+      // Small delay to ensure React processes the null state first
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
       setCompletedVideoBlobUrl(videoUrl);
       
       onLog('Video loaded successfully');
@@ -45,16 +55,23 @@ export function useVideoProcessing({ outputFormat, onLog }: UseVideoProcessingPr
         onLog(`[Upscale] ${progress.message}`);
         
         // Update stopping state based on progress
-        if (progress.isStopping) {
+        // Only set isStopping to true if we're still processing (avoid race condition with cancel)
+        if (progress.isStopping && isProcessing) {
           setIsStopping(true);
         }
         
         if (progress.type === 'complete') {
-          setIsProcessing(false);
+          // Always reset stopping state when processing completes
           setIsStopping(false);
-          setCompletedVideoPath(outputPath);
-          setPreviewFrame(null);
-          loadCompletedVideo(outputPath);
+          
+          // Only auto-load video if we're in a real processing session (not preview)
+          // Preview handles its own video loading via handlePreviewSegment
+          if (isProcessing) {
+            setIsProcessing(false);
+            setCompletedVideoPath(outputPath);
+            setPreviewFrame(null);
+            loadCompletedVideo(outputPath);
+          }
         } else if (progress.type === 'error') {
           setIsProcessing(false);
           setIsStopping(false);
@@ -63,7 +80,7 @@ export function useVideoProcessing({ outputFormat, onLog }: UseVideoProcessingPr
     });
 
     return unsubscribe;
-  }, [outputPath, onLog, loadCompletedVideo]);
+  }, [outputPath, onLog, loadCompletedVideo, isProcessing]);
 
   // Cleanup blob URL when component unmounts or new video starts
   useEffect(() => {
@@ -140,7 +157,8 @@ export function useVideoProcessing({ outputFormat, onLog }: UseVideoProcessingPr
     selectedModel: string,
     useDirectML: boolean,
     filters: Filter[],
-    numStreams: number = 2
+    numStreams: number = 2,
+    segment?: SegmentSelection
   ): Promise<void> => {
     if (!videoInfo || !outputPath) return;
     
@@ -172,6 +190,9 @@ export function useVideoProcessing({ outputFormat, onLog }: UseVideoProcessingPr
     if (!useDirectML) {
       onLog(`TensorRT num_streams: ${numStreams}`);
     }
+    if (segment?.enabled) {
+      onLog(`Segment: frames ${segment.startFrame} to ${segment.endFrame === -1 ? 'end' : segment.endFrame}`);
+    }
     
     try {
       const result = await window.electronAPI.startUpscale(
@@ -182,7 +203,8 @@ export function useVideoProcessing({ outputFormat, onLog }: UseVideoProcessingPr
         true,
         filters,
         0,
-        numStreams
+        numStreams,
+        segment
       );
       if (!result.success) {
         onLog(`Error: ${result.error}`);

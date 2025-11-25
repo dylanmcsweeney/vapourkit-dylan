@@ -1,6 +1,7 @@
 import { ipcMain, BrowserWindow, shell } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs-extra';
+import * as os from 'os';
 import { logger } from './logger';
 import { PATHS } from './constants';
 import { configManager } from './configManager';
@@ -13,6 +14,7 @@ import { DependencyManager } from './dependencyManager';
 import { FFmpegSettingsManager } from './ffmpegSettingsManager';
 
 let upscaleExecutor: UpscaleExecutor | null = null;
+let previewExecutor: UpscaleExecutor | null = null;
 
 /**
  * Registers all video-related IPC handlers
@@ -39,7 +41,8 @@ export function registerVideoHandlers(
         codec: metadata.codec,
         container: metadata.container,
         scanType: metadata.scanType,
-        colorSpace: metadata.colorSpace
+        colorSpace: metadata.colorSpace,
+        duration: metadata.duration
       };
       
       logger.info(`Video info: ${info.name}, ${info.sizeFormatted}, ${metadata.resolution || 'unknown resolution'}, ${metadata.fps ? metadata.fps + ' fps' : 'unknown fps'}, ${metadata.pixelFormat || 'unknown format'}`);
@@ -135,7 +138,8 @@ export function registerVideoHandlers(
     upscalingEnabled?: boolean,
     filters?: any[],
     upscalePosition?: number,
-    numStreams?: number
+    numStreams?: number,
+    segment?: { enabled: boolean; startFrame: number; endFrame: number }
   ) => {
     return await withLogSeparator(async () => {
       const isUpscaling = upscalingEnabled !== false; // Default to true for backward compatibility
@@ -148,6 +152,11 @@ export function registerVideoHandlers(
         logger.upscale(`Backend: ${useDirectML ? 'DirectML (ONNX Runtime)' : 'TensorRT'}`);
       }
       logger.upscale(`Output: ${outputPath}`);
+      
+      // Log segment selection
+      if (segment?.enabled) {
+        logger.upscale(`Segment: frames ${segment.startFrame} to ${segment.endFrame === -1 ? 'end' : segment.endFrame}`);
+      }
       
       // Log filter status
       if (filters && filters.length > 0) {
@@ -166,7 +175,8 @@ export function registerVideoHandlers(
           useDirectML,
           upscalingEnabled,
           filters,
-          numStreams
+          numStreams,
+          segment
         );
 
         if (config.upscalingEnabled && config.enginePath) {
@@ -269,6 +279,76 @@ export function registerVideoHandlers(
       return { success: false, error: errorMsg };
     }
   });
+
+  // Preview segment handler - processes a short segment and opens it in the default video player
+  ipcMain.handle('preview-segment', async (
+    event,
+    videoPath: string,
+    modelPath: string | null,
+    useDirectML?: boolean,
+    upscalingEnabled?: boolean,
+    filters?: any[],
+    numStreams?: number,
+    startFrame?: number,
+    endFrame?: number
+  ) => {
+    return await withLogSeparator(async () => {
+      logger.upscale('Starting segment preview');
+      logger.upscale(`Input: ${videoPath}`);
+      logger.upscale(`Preview frames: ${startFrame ?? 0} to ${endFrame ?? 'auto'}`);
+      
+      try {
+        // Create temporary preview output path
+        const timestamp = Date.now();
+        const previewPath = path.join(os.tmpdir(), `vapourkit_preview_${timestamp}.mkv`);
+        
+        // Create segment config for preview
+        const previewSegment = {
+          enabled: true,
+          startFrame: startFrame ?? 0,
+          endFrame: endFrame ?? -1
+        };
+        
+        const config = createScriptConfig(
+          videoPath,
+          modelPath,
+          dependencyManager,
+          useDirectML,
+          upscalingEnabled,
+          filters,
+          numStreams,
+          previewSegment
+        );
+        
+        const scriptPath = await scriptGenerator.generateScript(config);
+        logger.upscale(`Preview script generated: ${scriptPath}`);
+        
+        // Initialize executor for preview
+        const vspipePath = dependencyManager.getVSPipePath();
+        const pythonPath = dependencyManager.getPythonExecutablePath();
+        previewExecutor = new UpscaleExecutor(vspipePath, pythonPath, mainWindow);
+        
+        // Get frame count
+        const totalFrames = await previewExecutor.getFrameCount(scriptPath);
+        logger.upscale(`Preview frames to process: ${totalFrames}`);
+        
+        // Execute preview (previewMode=true to skip subtitles for MKV compatibility)
+        await previewExecutor.execute(scriptPath, previewPath, videoPath, totalFrames, true);
+        
+        // Cleanup script
+        await scriptGenerator.cleanupScript(scriptPath);
+        previewExecutor = null;
+        
+        logger.upscale('Preview completed successfully');
+        return { success: true, previewPath };
+      } catch (error) {
+        previewExecutor = null;
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+        logger.error('Preview failed:', errorMsg);
+        return { success: false, error: errorMsg };
+      }
+    });
+  });
 }
 
 /**
@@ -281,7 +361,8 @@ function createScriptConfig(
   useDirectML?: boolean,
   upscalingEnabled?: boolean,
   filters?: any[],
-  numStreams?: number
+  numStreams?: number,
+  segment?: { enabled: boolean; startFrame: number; endFrame: number }
 ) {
   const isUpscaling = upscalingEnabled !== false;
   
@@ -323,6 +404,7 @@ function createScriptConfig(
     colorMatrix: colorMatrixSettings,
     filters: filters,
     numStreams: numStreams,
-    outputFormat: outputFormat
+    outputFormat: outputFormat,
+    segment: segment?.enabled ? segment : undefined
   };
 }

@@ -7,6 +7,7 @@ interface VideoPreviewPanelProps {
   completedVideoBlobUrl: string | null;
   videoLoadError: boolean;
   isProcessing: boolean;
+  segmentEnabled?: boolean;
   onCompareVideos: () => Promise<void>;
   onOpenOutputFolder: () => Promise<void>;
   onVideoError: () => void;
@@ -18,6 +19,7 @@ export function VideoPreviewPanel({
   completedVideoBlobUrl,
   videoLoadError,
   isProcessing,
+  segmentEnabled,
   onCompareVideos,
   onOpenOutputFolder,
   onVideoError,
@@ -35,8 +37,13 @@ export function VideoPreviewPanel({
           <div className="flex items-center gap-2">
             <button
               onClick={onCompareVideos}
-              className="text-sm text-primary-purple hover:text-purple-400 transition-colors flex items-center gap-2"
-              title="Compare input and output videos side-by-side"
+              disabled={segmentEnabled}
+              className={`text-sm transition-colors flex items-center gap-2 ${
+                segmentEnabled 
+                  ? 'text-gray-500 cursor-not-allowed' 
+                  : 'text-primary-purple hover:text-purple-400'
+              }`}
+              title={segmentEnabled ? "Compare not available for segment-processed videos" : "Compare input and output videos side-by-side"}
             >
               <GitCompare className="w-4 h-4" />
               Compare

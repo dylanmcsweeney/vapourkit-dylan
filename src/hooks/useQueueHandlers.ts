@@ -1,6 +1,6 @@
 // src/hooks/useQueueHandlers.ts - Queue operation handlers
 
-import type { QueueItem } from '../electron.d';
+import type { QueueItem, SegmentSelection } from '../electron.d';
 import { getErrorMessage } from '../types/errors';
 
 interface UseQueueHandlersOptions {
@@ -11,6 +11,7 @@ interface UseQueueHandlersOptions {
   outputFormat: string;
   useDirectML: boolean;
   numStreams: number;
+  segment: SegmentSelection;
   isProcessingQueueItem: boolean;
   setEditingQueueItemId: (id: string | null) => void;
   setIsQueueStarted: (started: boolean) => void;
@@ -22,6 +23,7 @@ interface UseQueueHandlersOptions {
   setOutputFormat: (format: string) => void;
   toggleDirectML: (value: boolean) => void;
   updateNumStreams: (streams: number) => void;
+  setSegment: (segment: SegmentSelection) => void;
   updateQueueItem: (id: string, updates: Partial<QueueItem>) => void;
   updateItemWorkflow: (id: string, workflow: any) => void;
   requeueItem: (id: string) => void;
@@ -42,6 +44,7 @@ export function useQueueHandlers(options: UseQueueHandlersOptions) {
     outputFormat,
     useDirectML,
     numStreams,
+    segment,
     isProcessingQueueItem,
     setEditingQueueItemId,
     setIsQueueStarted,
@@ -53,6 +56,7 @@ export function useQueueHandlers(options: UseQueueHandlersOptions) {
     setOutputFormat,
     toggleDirectML,
     updateNumStreams,
+    setSegment,
     updateQueueItem,
     updateItemWorkflow,
     requeueItem,
@@ -87,6 +91,13 @@ export function useQueueHandlers(options: UseQueueHandlersOptions) {
           toggleDirectML(item.workflow.useDirectML);
           updateNumStreams(item.workflow.numStreams);
           
+          // Restore segment selection AFTER loading video info
+          if (item.workflow.segment?.enabled) {
+            setSegment(item.workflow.segment);
+          } else {
+            setSegment({ enabled: false, startFrame: 0, endFrame: -1 });
+          }
+          
           // Clear editing state if we were editing something
           setEditingQueueItemId(null);
           
@@ -108,6 +119,7 @@ export function useQueueHandlers(options: UseQueueHandlersOptions) {
         outputFormat,
         useDirectML,
         numStreams,
+        segment: segment.enabled ? { ...segment } : undefined,
       };
       updateItemWorkflow(editingQueueItemId, currentWorkflowSnapshot);
       onLog(`Auto-saved changes to queue item`);
@@ -125,6 +137,16 @@ export function useQueueHandlers(options: UseQueueHandlersOptions) {
     try {
       await loadVideoInfo(item.videoPath);
       setOutputPath(item.outputPath);
+      
+      // Restore segment selection AFTER loading video info
+      // This ensures the segment isn't reset by the videoInfo change effect
+      if (item.workflow.segment?.enabled) {
+        setSegment(item.workflow.segment);
+      } else {
+        // Reset segment to disabled if the queue item doesn't have segment data
+        setSegment({ enabled: false, startFrame: 0, endFrame: -1 });
+      }
+      
       onLog(`Loaded queue item for editing: ${item.videoName}`);
     } catch (error) {
       onLog(`Error loading queue item: ${getErrorMessage(error)}`);

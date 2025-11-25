@@ -79,6 +79,9 @@ export function useQueueProcessing(options: UseQueueProcessingOptions) {
         
         // Start processing with the item's workflow
         onLog(`Processing queue item: ${nextItem.videoName}`);
+        if (nextItem.workflow.segment?.enabled) {
+          onLog(`Segment: frames ${nextItem.workflow.segment.startFrame} to ${nextItem.workflow.segment.endFrame === -1 ? 'end' : nextItem.workflow.segment.endFrame}`);
+        }
         const result = await window.electronAPI.startUpscale(
           nextItem.videoPath,
           nextItem.workflow.selectedModel || '',
@@ -87,7 +90,8 @@ export function useQueueProcessing(options: UseQueueProcessingOptions) {
           true,
           nextItem.workflow.filters,
           0,
-          nextItem.workflow.numStreams
+          nextItem.workflow.numStreams,
+          nextItem.workflow.segment
         );
         
         if (!result.success) {

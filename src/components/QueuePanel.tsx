@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { List, Trash2, ChevronLeft, ChevronRight, PlayCircle, XCircle, RotateCcw, FolderOpen, SplitSquareHorizontal } from 'lucide-react';
+import { List, Trash2, ChevronLeft, ChevronRight, PlayCircle, XCircle, RotateCcw, FolderOpen, SplitSquareHorizontal, Scissors } from 'lucide-react';
 import type { QueueItem } from '../electron.d';
 
 interface QueuePanelProps {
@@ -313,13 +313,19 @@ export function QueuePanel({
                     </p>
                     
                     {/* Workflow info */}
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <div className="flex items-center gap-2 text-xs text-gray-500 flex-wrap">
                         <span className="bg-dark-bg px-1.5 py-0.5 rounded border border-gray-800">
                             {item.workflow.outputFormat.toUpperCase()}
                         </span>
                         {item.workflow.filters.filter(f => f.enabled).length > 0 && (
                             <span className="bg-dark-bg px-1.5 py-0.5 rounded border border-gray-800">
                                 {item.workflow.filters.filter(f => f.enabled).length} filter(s)
+                            </span>
+                        )}
+                        {item.workflow.segment?.enabled && (
+                            <span className="bg-orange-500/10 px-1.5 py-0.5 rounded border border-orange-500/30 text-orange-400 flex items-center gap-1">
+                                <Scissors className="w-3 h-3" />
+                                {item.workflow.segment.startFrame}-{item.workflow.segment.endFrame === -1 ? 'end' : item.workflow.segment.endFrame}
                             </span>
                         )}
                     </div>
@@ -340,8 +346,13 @@ export function QueuePanel({
                         e.stopPropagation();
                         onCompareItem(item.id);
                         }}
-                        className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1 text-[10px] bg-dark-bg hover:bg-dark-elevated border border-gray-700 rounded transition-colors"
-                        title="Compare with original"
+                        disabled={item.workflow.segment?.enabled}
+                        className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-1 text-[10px] border rounded transition-colors ${
+                          item.workflow.segment?.enabled
+                            ? 'bg-dark-bg/50 border-gray-800 text-gray-600 cursor-not-allowed'
+                            : 'bg-dark-bg hover:bg-dark-elevated border-gray-700'
+                        }`}
+                        title={item.workflow.segment?.enabled ? "Compare not available for segment-processed videos" : "Compare with original"}
                     >
                         <SplitSquareHorizontal className="w-3 h-3" />
                         Compare

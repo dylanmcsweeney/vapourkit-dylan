@@ -2,6 +2,7 @@ import { Sparkles } from 'lucide-react';
 import type { ModelFile, ColorMatrixSettings, FilterTemplate, VideoInfo, Filter } from '../electron.d';
 import { DynamicFilterPanel } from './DynamicFilterPanel';
 import { ColorMatrixPanel } from './ColorMatrixPanel';
+import { SegmentSelector, type SegmentSelection } from './SegmentSelector';
 import { getModelDisplayName } from '../utils/modelUtils';
 
 interface ModelSelectionPanelProps {
@@ -14,6 +15,7 @@ interface ModelSelectionPanelProps {
   videoInfo: VideoInfo | null;
   filterTemplates: FilterTemplate[];
   filters: Filter[];
+  segment?: SegmentSelection;
   onModelChange: (modelPath: string) => void;
   onImportClick: () => void;
   onManageModels?: () => void;
@@ -21,6 +23,8 @@ interface ModelSelectionPanelProps {
   onFiltersChange: (filters: Filter[]) => void;
   onSaveTemplate?: (template: FilterTemplate) => Promise<boolean>;
   onDeleteTemplate?: (name: string) => Promise<boolean>;
+  onSegmentChange?: (segment: SegmentSelection) => void;
+  onPreviewSegment?: (startFrame: number, endFrame: number) => void;
 }
 
 export function ModelSelectionPanel({
@@ -33,6 +37,7 @@ export function ModelSelectionPanel({
   videoInfo,
   filterTemplates,
   filters,
+  segment,
   onModelChange,
   onColorMatrixChange,
   onFiltersChange,
@@ -40,6 +45,8 @@ export function ModelSelectionPanel({
   onDeleteTemplate,
   onImportClick,
   onManageModels,
+  onSegmentChange,
+  onPreviewSegment,
 }: ModelSelectionPanelProps) {
   return (
     <>
@@ -50,6 +57,17 @@ export function ModelSelectionPanel({
           isProcessing={isProcessing}
           videoInfo={videoInfo}
           onSettingsChange={onColorMatrixChange}
+        />
+      )}
+
+      {/* Segment Selector - Only in Advanced Mode */}
+      {advancedMode && segment && onSegmentChange && (
+        <SegmentSelector
+          videoInfo={videoInfo}
+          segment={segment}
+          isProcessing={isProcessing}
+          onSegmentChange={onSegmentChange}
+          onPreview={onPreviewSegment}
         />
       )}
 

@@ -1,6 +1,6 @@
 // src/App.tsx - Refactored with extracted components and hooks
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Sparkles, XCircle, ChevronDown, ChevronUp, Terminal, Loader2 } from 'lucide-react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { ImportModelModal } from './components/ImportModelModal';
@@ -12,7 +12,7 @@ import { ModelManagerModal } from './components/ModelManagerModal';
 import { UpdateNotificationModal } from './components/UpdateNotificationModal';
 import { QueuePanel } from './components/QueuePanel';
 import { BatchConfigModal } from './components/BatchConfigModal';
-import type { UpdateInfo } from './electron';
+import type { UpdateInfo, SegmentSelection } from './electron';
 import { Header } from './components/Header';
 import { ModelBuildNotification } from './components/ModelBuildNotification';
 import { useModels } from './hooks/useModels';
@@ -99,6 +99,13 @@ function App() {
   // Model manager modal state
   const [showModelManager, setShowModelManager] = useState(false);
   
+  // Segment selection state (for advanced mode)
+  const [segment, setSegment] = useState<SegmentSelection>({
+    enabled: false,
+    startFrame: 0,
+    endFrame: -1, // -1 means end of video
+  });
+  
   // Update notification state
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
@@ -161,6 +168,7 @@ function App() {
     filters,
     useDirectML,
     numStreams,
+    segment,
     onAddToQueue: (videoPaths, workflow, outputPath) => {
       addToQueue(videoPaths, workflow, outputPath);
       queueActions.setShowQueue(true);
@@ -186,6 +194,7 @@ function App() {
     outputFormat,
     useDirectML,
     numStreams,
+    segment,
     isProcessingQueueItem: queueState.isProcessingQueueItem,
     setEditingQueueItemId: queueActions.setEditingQueueItemId,
     setIsQueueStarted: queueActions.setIsQueueStarted,
@@ -197,6 +206,7 @@ function App() {
     setOutputFormat,
     toggleDirectML,
     updateNumStreams,
+    setSegment,
     updateQueueItem,
     updateItemWorkflow,
     requeueItem,
@@ -236,6 +246,7 @@ function App() {
     outputFormat,
     useDirectML,
     numStreams,
+    segment,
     setEditingQueueItemId: queueActions.setEditingQueueItemId,
     updateItemWorkflow,
     onLog: addConsoleLog,
@@ -345,6 +356,18 @@ function App() {
     onUpdateVideoInfo: setVideoInfo,
   });
 
+  // Reset segment selection when video changes (but not when loading a queue item)
+  useEffect(() => {
+    // Don't reset segment when we're editing a queue item - the segment will be restored from the queue item's workflow
+    if (videoInfo && !queueState.editingQueueItemId) {
+      setSegment({
+        enabled: false,
+        startFrame: 0,
+        endFrame: -1,
+      });
+    }
+  }, [videoInfo?.path, queueState.editingQueueItemId]);
+
   // Preserve scroll position in right panel when preview updates
   useEffect(() => {
     const rightPanel = rightPanelRef.current;
@@ -432,6 +455,44 @@ function App() {
       addConsoleLog(`Error setting developer mode: ${getErrorMessage(error)}`);
     }
   };
+
+  // Segment selection handlers
+  const handleSegmentChange = useCallback((newSegment: SegmentSelection) => {
+    setSegment(newSegment);
+    if (newSegment.enabled) {
+      addConsoleLog(`Segment selection: frames ${newSegment.startFrame} to ${newSegment.endFrame === -1 ? 'end' : newSegment.endFrame}`);
+    }
+  }, [addConsoleLog]);
+
+  const handlePreviewSegment = useCallback(async (startFrame: number, endFrame: number) => {
+    if (!videoInfo) return;
+    
+    const previewSeconds = Math.ceil((endFrame - startFrame) / (videoInfo.fps || 24));
+    addConsoleLog(`Starting ${previewSeconds}-second preview from frame ${startFrame}...`);
+    try {
+      const result = await window.electronAPI.previewSegment(
+        videoInfo.path,
+        selectedModel,
+        useDirectML,
+        true,
+        filters,
+        numStreams,
+        startFrame,
+        endFrame
+      );
+      
+      if (result.success && result.previewPath) {
+        addConsoleLog(`Preview complete: ${result.previewPath}`);
+        // Load the preview into the built-in video player
+        setCompletedVideoPath(result.previewPath);
+        await loadCompletedVideo(result.previewPath);
+      } else {
+        addConsoleLog(`Preview failed: ${result.error}`);
+      }
+    } catch (error) {
+      addConsoleLog(`Preview error: ${getErrorMessage(error)}`);
+    }
+  }, [videoInfo, selectedModel, useDirectML, filters, numStreams, addConsoleLog, loadCompletedVideo, setCompletedVideoPath]);
 
   // Determine if processing should be disabled
   const isStartDisabled = (() => {
@@ -539,6 +600,7 @@ function App() {
                     completedVideoBlobUrl={completedVideoBlobUrl}
                     videoLoadError={videoLoadError}
                     isProcessing={isProcessing}
+                    segmentEnabled={segment.enabled}
                     onCompareVideos={handleCompareVideos}
                     onOpenOutputFolder={handleOpenOutputFolder}
                     onVideoError={handleVideoError}
@@ -621,6 +683,7 @@ function App() {
                     videoInfo={videoInfo}
                     filterTemplates={filterTemplates}
                     filters={filters}
+                    segment={segment}
                     onModelChange={setSelectedModel}
                     onImportClick={() => {
                       setModalMode('import');
@@ -631,6 +694,8 @@ function App() {
                     onFiltersChange={handleSetFilters}
                     onSaveTemplate={saveTemplate}
                     onDeleteTemplate={deleteTemplate}
+                    onSegmentChange={handleSegmentChange}
+                    onPreviewSegment={handlePreviewSegment}
                   />
 
                   {/* Output Settings */}
@@ -720,7 +785,7 @@ function App() {
                       </button>
                     ) : (
                       <button
-                        onClick={isProcessing ? handleCancelUpscale : () => handleUpscale(selectedModel || '', useDirectML, filters, numStreams)}
+                        onClick={isProcessing ? handleCancelUpscale : () => handleUpscale(selectedModel || '', useDirectML, filters, numStreams, segment)}
                         disabled={isStartDisabled}
                         className={`flex-1 font-semibold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 ${
                           isStopping
