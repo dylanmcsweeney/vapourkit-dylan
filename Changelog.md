@@ -5,6 +5,8 @@
   - When using this mode, the comparison buttons are disabled
 - Fix issue where highlighted code wasn't visible in the Filter panel
 - Minor bug fixes
+- Fix GUI lag
+- Add search function to Manage Models menu
 
 ## 0.10.1
 - Redesign "Show Queue" button and change location
