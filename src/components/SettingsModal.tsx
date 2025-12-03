@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, Info, Terminal, FolderOpen, X, Package, FileCode, RotateCcw, Cpu, Layers } from 'lucide-react';
+import { Settings, Info, Terminal, FolderOpen, X, Package, FileCode, RotateCcw, Cpu, Layers, Play, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface SettingsModalProps {
   show: boolean;
@@ -13,6 +13,9 @@ interface SettingsModalProps {
   onResetFfmpegArgs: () => void;
   processingFormat: string;
   onUpdateProcessingFormat: (format: string) => void;
+  videoCompareArgs: string;
+  onUpdateVideoCompareArgs: (args: string) => void;
+  onResetVideoCompareArgs: () => void;
 }
 
 type Tab = 'general' | 'processing';
@@ -28,9 +31,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onUpdateFfmpegArgs,
   onResetFfmpegArgs,
   processingFormat,
-  onUpdateProcessingFormat
+  onUpdateProcessingFormat,
+  videoCompareArgs,
+  onUpdateVideoCompareArgs,
+  onResetVideoCompareArgs
 }) => {
   const [activeTab, setActiveTab] = useState<Tab>('general');
+  const [showVideoCompareOptions, setShowVideoCompareOptions] = useState(false);
 
   if (!show) return null;
 
@@ -325,6 +332,88 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       <ul className="text-xs text-gray-400 space-y-1">
                         <li><code className="text-blue-400">-map_metadata 1</code> - Copy metadata from input</li>
                       </ul>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* Video Compare Configuration Section */}
+              <div>
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Play className="w-5 h-5 text-green-500" />
+                  Video Compare
+                </h3>
+                
+                <div className="bg-dark-surface rounded-lg p-4 border border-gray-700">
+                  <label className="block">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-medium text-white">Command Line Arguments</p>
+                      <button
+                        onClick={onResetVideoCompareArgs}
+                        className="text-xs text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1"
+                      >
+                        <RotateCcw className="w-3 h-3" />
+                        Reset to Default
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      value={videoCompareArgs}
+                      onChange={(e) => onUpdateVideoCompareArgs(e.target.value)}
+                      className="w-full bg-dark-bg border border-gray-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-green-500 font-mono"
+                      placeholder="-W"
+                    />
+                    <p className="text-xs text-gray-400 mt-2">
+                      Arguments passed to video-compare when launching comparison view. Default: <code className="text-green-400">-W</code> (window fit display)
+                    </p>
+                    
+                    {/* Collapsible Options Reference */}
+                    <div className="mt-3">
+                      <button
+                        onClick={() => setShowVideoCompareOptions(!showVideoCompareOptions)}
+                        className="flex items-center gap-2 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                      >
+                        {showVideoCompareOptions ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                        {showVideoCompareOptions ? 'Hide' : 'Show'} available options
+                      </button>
+                      
+                      {showVideoCompareOptions && (
+                        <div className="mt-3 p-3 bg-dark-bg rounded border border-gray-700 max-h-64 overflow-y-auto">
+                          <p className="text-xs font-medium text-white mb-2">Available Options:</p>
+                          <ul className="text-xs text-gray-400 space-y-1.5 font-mono">
+                            <li><code className="text-green-400">-c, --show-controls</code> - show controls</li>
+                            <li><code className="text-green-400">-v, --verbose</code> - enable verbose output</li>
+                            <li><code className="text-green-400">-d, --high-dpi</code> - allow high DPI mode for UHD content</li>
+                            <li><code className="text-green-400">-b, --10-bpc</code> - use 10 bits per color component</li>
+                            <li><code className="text-green-400">-F, --fast-alignment</code> - fast bilinear scaling for alignment</li>
+                            <li><code className="text-green-400">-I, --bilinear-texture</code> - bilinear video texture interpolation</li>
+                            <li><code className="text-green-400">-n, --display-number</code> - open on specific display (0, 1, 2)</li>
+                            <li><code className="text-green-400">-m, --mode</code> - display mode: split, vstack, hstack</li>
+                            <li><code className="text-green-400">-w, --window-size</code> - window size [width]x[height]</li>
+                            <li><code className="text-green-400">-W, --window-fit-display</code> - fit window within display bounds</li>
+                            <li><code className="text-green-400">-a, --auto-loop-mode</code> - auto-loop: off, on, pp (ping-pong)</li>
+                            <li><code className="text-green-400">-f, --frame-buffer-size</code> - frame buffer size (default: 50)</li>
+                            <li><code className="text-green-400">-t, --time-shift</code> - shift right video timestamps</li>
+                            <li><code className="text-green-400">-s, --wheel-sensitivity</code> - mouse wheel sensitivity</li>
+                            <li><code className="text-green-400">-C, --color-space</code> - color space matrix (e.g. bt709, bt2020nc)</li>
+                            <li><code className="text-green-400">-A, --color-range</code> - color range (tv, pc)</li>
+                            <li><code className="text-green-400">-P, --color-primaries</code> - color primaries (bt709, bt2020)</li>
+                            <li><code className="text-green-400">-N, --color-trc</code> - transfer characteristics</li>
+                            <li><code className="text-green-400">-T, --tone-map-mode</code> - HDR tone mapping: auto, off, on, rel</li>
+                            <li><code className="text-green-400">-L, --left-peak-nits</code> - left video peak luminance</li>
+                            <li><code className="text-green-400">-R, --right-peak-nits</code> - right video peak luminance</li>
+                            <li><code className="text-green-400">-B, --boost-tone</code> - tone-mapping strength factor</li>
+                            <li><code className="text-green-400">-i, --filters</code> - FFmpeg filters for both sides</li>
+                            <li><code className="text-green-400">-l, --left-filters</code> - FFmpeg filters for left video</li>
+                            <li><code className="text-green-400">-r, --right-filters</code> - FFmpeg filters for right video</li>
+                            <li><code className="text-green-400">--demuxer</code> - FFmpeg demuxer name</li>
+                            <li><code className="text-green-400">--decoder</code> - FFmpeg decoder name</li>
+                            <li><code className="text-green-400">--hwaccel</code> - hardware acceleration (cuda, vulkan, etc.)</li>
+                            <li><code className="text-green-400">--libvmaf-options</code> - libvmaf filter options</li>
+                            <li><code className="text-green-400">--no-auto-filters</code> - disable automatic filters</li>
+                          </ul>
+                        </div>
+                      )}
                     </div>
                   </label>
                 </div>

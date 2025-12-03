@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 export const useProcessingConfig = (isSetupComplete: boolean) => {
   const [ffmpegArgs, setFfmpegArgs] = useState<string>('');
   const [processingFormat, setProcessingFormat] = useState<string>('vs.YUV420P8');
+  const [videoCompareArgs, setVideoCompareArgs] = useState<string>('-W');
 
   // Load configuration on mount
   useEffect(() => {
@@ -13,6 +14,9 @@ export const useProcessingConfig = (isSetupComplete: boolean) => {
         
         const formatResult = await window.electronAPI.getProcessingFormat();
         setProcessingFormat(formatResult.format);
+
+        const videoCompareResult = await window.electronAPI.getVideoCompareArgs();
+        setVideoCompareArgs(videoCompareResult.args);
       } catch (error) {
         console.error('Failed to load processing config:', error);
       }
@@ -51,11 +55,33 @@ export const useProcessingConfig = (isSetupComplete: boolean) => {
     }
   }, []);
 
+  const handleUpdateVideoCompareArgs = useCallback(async (args: string): Promise<void> => {
+    try {
+      setVideoCompareArgs(args);
+      await window.electronAPI.setVideoCompareArgs(args);
+    } catch (error) {
+      console.error('Error updating video compare args:', error);
+    }
+  }, []);
+
+  const handleResetVideoCompareArgs = useCallback(async (): Promise<void> => {
+    try {
+      const result = await window.electronAPI.getDefaultVideoCompareArgs();
+      setVideoCompareArgs(result.args);
+      await window.electronAPI.setVideoCompareArgs(result.args);
+    } catch (error) {
+      console.error('Error resetting video compare args:', error);
+    }
+  }, []);
+
   return {
     ffmpegArgs,
     processingFormat,
+    videoCompareArgs,
     handleUpdateFfmpegArgs,
     handleResetFfmpegArgs,
-    handleUpdateProcessingFormat
+    handleUpdateProcessingFormat,
+    handleUpdateVideoCompareArgs,
+    handleResetVideoCompareArgs
   };
 };

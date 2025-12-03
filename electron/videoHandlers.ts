@@ -270,7 +270,16 @@ export function registerVideoHandlers(
       
       // Launch video-compare with both videos
       logger.info(`Launching: ${PATHS.VIDEO_COMPARE_EXE}`);
-      const child = spawn(PATHS.VIDEO_COMPARE_EXE, ['-W', inputPath, outputPath], {
+      
+      // Get custom args from config
+      const videoCompareArgsString = configManager.getVideoCompareArgs();
+      const customArgs = videoCompareArgsString.trim().split(/\s+/).filter(arg => arg.length > 0);
+      
+      // Combine args with video paths
+      const allArgs = [...customArgs, inputPath, outputPath];
+      logger.info(`Video compare args: ${allArgs.join(' ')}`);
+      
+      const child = spawn(PATHS.VIDEO_COMPARE_EXE, allArgs, {
         detached: true,
         stdio: 'ignore'
       });

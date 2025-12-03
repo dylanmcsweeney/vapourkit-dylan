@@ -59,10 +59,13 @@ function App() {
   const { useDirectML, toggleDirectML, numStreams, updateNumStreams } = useSettings(hasCudaSupport);
   const { 
     ffmpegArgs, 
-    processingFormat, 
+    processingFormat,
+    videoCompareArgs,
     handleUpdateFfmpegArgs, 
     handleResetFfmpegArgs, 
-    handleUpdateProcessingFormat 
+    handleUpdateProcessingFormat,
+    handleUpdateVideoCompareArgs,
+    handleResetVideoCompareArgs
   } = useProcessingConfig(isSetupComplete);
   
   // Model management hooks
@@ -884,6 +887,9 @@ function App() {
         onResetFfmpegArgs={handleResetFfmpegArgs}
         processingFormat={processingFormat}
         onUpdateProcessingFormat={handleUpdateProcessingFormat}
+        videoCompareArgs={videoCompareArgs}
+        onUpdateVideoCompareArgs={handleUpdateVideoCompareArgs}
+        onResetVideoCompareArgs={handleResetVideoCompareArgs}
       />
 
       <AboutModal

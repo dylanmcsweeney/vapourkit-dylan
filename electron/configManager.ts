@@ -8,6 +8,9 @@ import type { ModelType } from './scriptGenerator';
 // Single source of truth for FFmpeg default arguments
 export const DEFAULT_FFMPEG_ARGS = '-c:v libx264 -preset medium -crf 18 -map_metadata 1';
 
+// Single source of truth for video-compare default arguments
+export const DEFAULT_VIDEO_COMPARE_ARGS = '-W';
+
 interface Filter {
   id: string;
   enabled: boolean;
@@ -39,6 +42,7 @@ interface AppConfig {
   upscalePosition?: number;
   ffmpegArgs?: string;
   processingFormat?: string;
+  videoCompareArgs?: string;
   models: {
     [modelName: string]: {
       useFp32: boolean;
@@ -75,6 +79,7 @@ const DEFAULT_CONFIG: AppConfig = {
   upscalePosition: 0,
   ffmpegArgs: DEFAULT_FFMPEG_ARGS,
   processingFormat: 'vs.YUV420P8',
+  videoCompareArgs: DEFAULT_VIDEO_COMPARE_ARGS,
   models: {}
 };
 
@@ -248,6 +253,19 @@ export class ConfigManager {
 
   getDefaultFfmpegArgs(): string {
     return DEFAULT_FFMPEG_ARGS;
+  }
+
+  getVideoCompareArgs(): string {
+    return this.config.videoCompareArgs ?? DEFAULT_VIDEO_COMPARE_ARGS;
+  }
+
+  async setVideoCompareArgs(args: string): Promise<void> {
+    this.config.videoCompareArgs = args;
+    await this.save();
+  }
+
+  getDefaultVideoCompareArgs(): string {
+    return DEFAULT_VIDEO_COMPARE_ARGS;
   }
 }
 

@@ -106,6 +106,22 @@ export function registerConfigHandlers(mainWindow: BrowserWindow | null) {
     return { success: true };
   });
 
+  ipcMain.handle('get-video-compare-args', async () => {
+    const args = configManager.getVideoCompareArgs();
+    return { args };
+  });
+
+  ipcMain.handle('set-video-compare-args', async (event, args: string) => {
+    logger.info(`Setting video compare args: ${args}`);
+    await configManager.setVideoCompareArgs(args);
+    return { success: true };
+  });
+
+  ipcMain.handle('get-default-video-compare-args', async () => {
+    const args = configManager.getDefaultVideoCompareArgs();
+    return { args };
+  });
+
   ipcMain.handle('get-version', async () => {
     return { version: app.getVersion() };
   });

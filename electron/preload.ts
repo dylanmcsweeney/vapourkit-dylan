@@ -90,6 +90,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getProcessingFormat: () => ipcRenderer.invoke('get-processing-format'),
   setProcessingFormat: (format: string) => ipcRenderer.invoke('set-processing-format', format),
 
+  // Video compare configuration
+  getVideoCompareArgs: () => ipcRenderer.invoke('get-video-compare-args'),
+  setVideoCompareArgs: (args: string) => ipcRenderer.invoke('set-video-compare-args', args),
+  getDefaultVideoCompareArgs: () => ipcRenderer.invoke('get-default-video-compare-args'),
+
   // Panel sizes
   getPanelSizes: () => ipcRenderer.invoke('get-panel-sizes'),
   setPanelSizes: (sizes: any) => ipcRenderer.invoke('set-panel-sizes', sizes),

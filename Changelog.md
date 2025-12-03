@@ -6,6 +6,7 @@
 - Move the DirectML toggle from Settings to the header
 - Change the default model type from `tspan` to `image` to reduce chance of error for models without metadata
 - Fix audio clipping when using segments
+- Allow users to customize video-compare settings in the Settings menu
 
 ## 0.10.2
 - Implement segment selection. Users can now select a small segment of a video to process and preview!
