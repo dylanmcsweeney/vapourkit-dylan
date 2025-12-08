@@ -64,7 +64,7 @@ export function SetupScreen({
                 <div className="flex items-center gap-3 p-3 bg-dark-surface rounded-lg">
                   <Download className="w-5 h-5 text-primary-purple" />
                   <div className="flex-1">
-                    <p className="font-medium">vs-mlrt TensorRT Plugin v15.13</p>
+                    <p className="font-medium">vs-mlrt TensorRT Plugin v15.14</p>
                     <p className="text-sm text-gray-500">AI inference engine (NVIDIA GPUs)</p>
                   </div>
                 </div>
@@ -73,7 +73,7 @@ export function SetupScreen({
                 <div className="flex items-center gap-3 p-3 bg-dark-surface rounded-lg opacity-50">
                   <XCircle className="w-5 h-5 text-gray-600" />
                   <div className="flex-1">
-                    <p className="font-medium">vs-mlrt TensorRT Plugin v15.13</p>
+                    <p className="font-medium">vs-mlrt TensorRT Plugin v15.14</p>
                     <p className="text-sm text-gray-500">Skipped - No NVIDIA GPU detected</p>
                   </div>
                 </div>

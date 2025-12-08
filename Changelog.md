@@ -8,6 +8,8 @@
 - Fix audio clipping when using segments
 - Allow users to customize video-compare settings in the Settings menu
 - Force kill trtexec and vspipe processes when beginning workflow processing
+- Add MC_Degrain filters
+- Change to vs-mlrt version 15.14 from 15.13 RTX. This should enable GTX GPUs to work
 
 ## 0.10.2
 - Implement segment selection. Users can now select a small segment of a video to process and preview!

@@ -25,8 +25,10 @@ export interface DownloadProgress {
 
 interface ComponentConfig {
   name: string;
-  url: string;
+  url?: string;
+  urls?: string[];  // For multi-part archives (e.g., .7z.001, .7z.002)
   archiveName: string;
+  archiveNames?: string[];  // For multi-part archives
   checkPath: string;
   extractTo: string;
 }
@@ -309,12 +311,33 @@ export class DependencyManager {
     }
 
     logger.dependency(`${config.name} not found, downloading`);
-    const archivePath = path.join(PATHS.APP_DATA, config.archiveName);
-    
-    await this.downloadFile(config.url, archivePath, config.name);
     await fs.ensureDir(config.extractTo);
-    await this.extractArchive(archivePath, config.extractTo, config.name);
-    await fs.remove(archivePath);
+    
+    // Handle multi-part archives (e.g., .7z.001, .7z.002)
+    if (config.urls && config.archiveNames) {
+      const archivePaths: string[] = [];
+      
+      // Download all parts
+      for (let i = 0; i < config.urls.length; i++) {
+        const archivePath = path.join(PATHS.APP_DATA, config.archiveNames[i]);
+        archivePaths.push(archivePath);
+        await this.downloadFile(config.urls[i], archivePath, `${config.name} (Part ${i + 1}/${config.urls.length})`);
+      }
+      
+      // Extract using the first part (7zip will automatically find the other parts)
+      await this.extractArchive(archivePaths[0], config.extractTo, config.name);
+      
+      // Clean up all parts
+      for (const archivePath of archivePaths) {
+        await fs.remove(archivePath);
+      }
+    } else if (config.url) {
+      // Single archive download
+      const archivePath = path.join(PATHS.APP_DATA, config.archiveName);
+      await this.downloadFile(config.url, archivePath, config.name);
+      await this.extractArchive(archivePath, config.extractTo, config.name);
+      await fs.remove(archivePath);
+    }
   }
 
   async setupDependencies(): Promise<void> {
@@ -364,9 +387,13 @@ export class DependencyManager {
       if (hasCuda) {
         logger.dependency('=== CUDA DETECTED - Adding TensorRT plugin ===');
         components.splice(1, 0, {
-          name: 'vs-mlrt TensorRT v15.13',
-          url: 'https://github.com/AmusementClub/vs-mlrt/releases/download/v15.13.rtx/vsmlrt-windows-x64-tensorrt.v15.13.rtx.7z',
-          archiveName: 'vsmlrt.7z',
+          name: 'vs-mlrt TensorRT v15.14',
+          urls: [
+            'https://github.com/AmusementClub/vs-mlrt/releases/download/v15.14/vsmlrt-windows-x64-tensorrt.v15.14.7z.001',
+            'https://github.com/AmusementClub/vs-mlrt/releases/download/v15.14/vsmlrt-windows-x64-tensorrt.v15.14.7z.002'
+          ],
+          archiveName: 'vsmlrt.7z.001',
+          archiveNames: ['vsmlrt.7z.001', 'vsmlrt.7z.002'],
           checkPath: path.join(PATHS.MLRT_PLUGIN, 'trtexec.exe'),
           extractTo: PATHS.PLUGINS
         });
