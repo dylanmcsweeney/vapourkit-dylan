@@ -188,7 +188,14 @@ export function registerModelHandlers(mainWindow: BrowserWindow | null) {
           if (conversionError.message === 'STATIC_SHAPE_FALLBACK') {
             logger.model('Static shape build succeeded with fallback to no shape parameters');
             const shapeInfo = conversionError.detectedShape ? ` Detected shape: ${conversionError.detectedShape}` : '';
-            sendProgress('converting', 99, `Build succeeded without shape parameters.${shapeInfo}`);
+            // Send shape and static mode info to frontend
+            mainWindow?.webContents.send('model-init-progress', {
+              type: 'converting',
+              progress: 99,
+              message: `Build succeeded without shape parameters.${shapeInfo}`,
+              detectedShape: conversionError.detectedShape,
+              detectedStatic: true
+            });
           } else {
             throw conversionError;
           }
@@ -345,7 +352,14 @@ export function registerModelHandlers(mainWindow: BrowserWindow | null) {
           if (conversionError.message === 'STATIC_SHAPE_FALLBACK') {
             logger.model('Static shape build succeeded with fallback to no shape parameters');
             const shapeInfo = conversionError.detectedShape ? ` Detected shape: ${conversionError.detectedShape}` : '';
-            sendModelImportProgress(mainWindow, 'converting', 69, `Build succeeded without shape parameters.${shapeInfo}`);
+            // Send shape and static mode info to frontend
+            mainWindow?.webContents.send('model-import-progress', {
+              type: 'converting',
+              progress: 69,
+              message: `Build succeeded without shape parameters.${shapeInfo}`,
+              detectedShape: conversionError.detectedShape,
+              detectedStatic: true
+            });
           } else {
             throw conversionError;
           }
@@ -456,7 +470,8 @@ export function registerModelHandlers(mainWindow: BrowserWindow | null) {
         error: result.error,
         inputShape: result.inputShape,
         outputShape: result.outputShape,
-        inputName: result.inputName || 'input' // Default to 'input' if not found
+        inputName: result.inputName || 'input', // Default to 'input' if not found
+        isStatic: result.isStatic // Include static detection
       };
     } catch (error) {
       logger.error('Error validating ONNX model:', error);

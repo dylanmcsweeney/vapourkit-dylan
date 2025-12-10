@@ -97,10 +97,14 @@ export const useModelImport = (
           console.warn('Could not validate ONNX model:', validationError);
         }
         
+        addConsoleLog(`[Model] Setting form - detectedIsStatic: ${detectedIsStatic}, detectedShape: ${detectedShape ? detectedShape.join('x') : 'none'}`);
+        
         setImportForm(prev => {
           // If static model detected, use static mode and the detected shape
           const useStatic = detectedIsStatic;
           const channels = prev.modelType === 'tspan' ? '15' : '3';
+          
+          addConsoleLog(`[Model] Form update - useStatic: ${useStatic}, channels: ${channels}`);
           
           // Build optShapes based on detected shape or defaults
           let optShapes: string;
@@ -113,24 +117,34 @@ export const useModelImport = (
             optShapes = `${extractedInputName}:1x${channels}x720x1280`;
           }
           
-          const newCommand = generateTrtexecCommand(prev.modelType, prev.useFp32, useStatic, extractedInputName);
+          let newCommand = generateTrtexecCommand(prev.modelType, prev.useFp32, useStatic, extractedInputName);
           
-          return { 
+          // If static model with detected shape, update the command to use the actual detected shape
+          if (useStatic && detectedShape && detectedShape.length >= 4) {
+            const detectedShapeStr = detectedShape.join('x');
+            addConsoleLog(`[Model] Updating command with detected shape: ${detectedShapeStr}`);
+            // Replace the default shape with the detected shape
+            newCommand = newCommand.replace(
+              `--shapes=${extractedInputName}:1x${channels}x720x1280`,
+              `--shapes=${extractedInputName}:${detectedShapeStr}`
+            );
+          }
+          
+          const finalForm = { 
             ...prev, 
             onnxPath: result,
             modelName: modelName,
             inputName: extractedInputName,
             useStaticShape: useStatic,
-            customTrtexecParams: useStatic && detectedShape && detectedShape.length >= 4
-              ? newCommand.replace(
-                  new RegExp(`--shapes=${extractedInputName}:1x${channels}x\\d+x\\d+`),
-                  `--shapes=${extractedInputName}:${detectedShape.join('x')}`
-                )
-              : newCommand,
+            customTrtexecParams: newCommand,
             minShapes: `${extractedInputName}:1x${channels}x240x240`,
             optShapes,
             maxShapes: `${extractedInputName}:1x${channels}x1080x1920`,
           };
+          
+          addConsoleLog(`[Model] Final form - useStaticShape: ${finalForm.useStaticShape}, optShapes: ${finalForm.optShapes}`);
+          
+          return finalForm;
         });
       }
     } catch (error) {
@@ -286,6 +300,26 @@ export const useModelImport = (
       setImportProgress(progress);
       addConsoleLog(`[Build] ${progress.message}`);
       
+      // Update form if static model is detected
+      if (progress.detectedStatic && progress.detectedShape) {
+        setImportForm(prev => {
+          const channels = prev.modelType === 'tspan' ? '15' : '3';
+          const newCommand = generateTrtexecCommand(prev.modelType, prev.useFp32, true, prev.inputName);
+          // Replace the default shape with the detected shape
+          const updatedCommand = newCommand.replace(
+            `--shapes=${prev.inputName}:1x${channels}x720x1280`,
+            `--shapes=${prev.inputName}:${progress.detectedShape}`
+          );
+          return {
+            ...prev,
+            useStaticShape: true,
+            customTrtexecParams: updatedCommand,
+            optShapes: `${prev.inputName}:${progress.detectedShape}`
+          };
+        });
+        addConsoleLog(`[Build] Auto-updated to static mode with shape: ${progress.detectedShape}`);
+      }
+      
       if (progress.type === 'complete') {
         if (completionGuardRef.current) return;
         completionGuardRef.current = true;
@@ -306,6 +340,26 @@ export const useModelImport = (
     const handleModelImportProgress = (progress: ModelImportProgress): void => {
       setImportProgress(progress);
       addConsoleLog(`[Import] ${progress.message}`);
+      
+      // Update form if static model is detected
+      if (progress.detectedStatic && progress.detectedShape) {
+        setImportForm(prev => {
+          const channels = prev.modelType === 'tspan' ? '15' : '3';
+          const newCommand = generateTrtexecCommand(prev.modelType, prev.useFp32, true, prev.inputName);
+          // Replace the default shape with the detected shape
+          const updatedCommand = newCommand.replace(
+            `--shapes=${prev.inputName}:1x${channels}x720x1280`,
+            `--shapes=${prev.inputName}:${progress.detectedShape}`
+          );
+          return {
+            ...prev,
+            useStaticShape: true,
+            customTrtexecParams: updatedCommand,
+            optShapes: `${prev.inputName}:${progress.detectedShape}`
+          };
+        });
+        addConsoleLog(`[Import] Auto-updated to static mode with shape: ${progress.detectedShape}`);
+      }
       
       if (progress.type === 'complete') {
         if (completionGuardRef.current) return;

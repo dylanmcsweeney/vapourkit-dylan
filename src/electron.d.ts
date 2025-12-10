@@ -290,6 +290,8 @@ export interface ModelImportProgress {
   progress: number;
   message: string;
   enginePath?: string;
+  detectedShape?: string;
+  detectedStatic?: boolean;
 }
 
 export interface UpscaleProgress {
