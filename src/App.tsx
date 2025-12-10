@@ -418,24 +418,46 @@ function App() {
     const checkVsMlrtVersion = async (): Promise<void> => {
       try {
         const versionInfo = await window.electronAPI.checkVsMlrtVersion();
+        
         if (versionInfo.needsNotification) {
+          // Version changed and there are existing engines - show modal immediately
+          addConsoleLog(`vs-mlrt version upgrade detected: ${versionInfo.storedVersion || 'unknown'} → ${versionInfo.currentVersion}`);
           setVsMlrtVersionInfo(versionInfo);
           setShowVsMlrtModal(true);
-          addConsoleLog(`vs-mlrt version changed: ${versionInfo.storedVersion} → ${versionInfo.currentVersion}`);
+        } else if (versionInfo.storedVersion === undefined && versionInfo.engineCount > 0) {
+          // Upgrading from old version that didn't track vs-mlrt version, but engines exist
+          addConsoleLog(`vs-mlrt version upgrade detected (${versionInfo.engineCount} engine(s) from previous version may need rebuilding)`);
+          setVsMlrtVersionInfo(versionInfo);
+          setShowVsMlrtModal(true);
+        } else if (versionInfo.hasVersionMismatch && versionInfo.engineCount === 0) {
+          // Version changed but no engines exist - auto-update silently in background
+          addConsoleLog('vs-mlrt version mismatch detected, updating plugin...');
+          const updateResult = await window.electronAPI.updateVsMlrtPlugin();
+          
+          if (updateResult.success) {
+            addConsoleLog(`vs-mlrt plugin updated: ${versionInfo.storedVersion} → ${versionInfo.currentVersion} (no engines to rebuild)`);
+          } else {
+            addConsoleLog(`Failed to update vs-mlrt plugin: ${updateResult.error}`);
+            // Still update the version tracking
+            await window.electronAPI.updateVsMlrtVersion();
+          }
         } else if (versionInfo.storedVersion === undefined) {
           // First run or version not tracked yet - store the current version
           await window.electronAPI.updateVsMlrtVersion();
-          addConsoleLog(`vs-mlrt version set to ${versionInfo.currentVersion}`);
+          addConsoleLog(`vs-mlrt version initialized: ${versionInfo.currentVersion}`);
+        } else {
+          // Version matches - no action needed
+          addConsoleLog(`vs-mlrt version: ${versionInfo.currentVersion}`);
         }
       } catch (error) {
         console.error('Failed to check vs-mlrt version:', error);
+        addConsoleLog(`Error checking vs-mlrt version: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     };
     
     if (isSetupComplete && hasCudaSupport) {
-      // Check after a short delay to avoid blocking initial load
-      const timeoutId = setTimeout(checkVsMlrtVersion, 1000);
-      return () => clearTimeout(timeoutId);
+      // Check immediately after setup completes to catch upgrades
+      checkVsMlrtVersion();
     }
   }, [isSetupComplete, hasCudaSupport, addConsoleLog]);
 

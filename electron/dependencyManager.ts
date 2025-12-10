@@ -4,9 +4,10 @@ import axios from 'axios';
 import { app, BrowserWindow} from 'electron';
 import { ModelExtractor } from './modelExtractor';
 import { logger } from './logger';
-import { PATHS } from './constants';
+import { PATHS, VS_MLRT_VERSION } from './constants';
 import { runCommand } from './utils';
 import { FFmpegManager } from './ffmpegManager';
+import { configManager } from './configManager';
 
 // Fix 7zip-bin path for ASAR BEFORE importing 7zip-min
 const sevenBin = require('7zip-bin');
@@ -383,6 +384,13 @@ export class DependencyManager {
         }
       ];
 
+      // Check for vs-mlrt version change before installation
+      const storedVsMlrtVersion = configManager.getVsMlrtVersion();
+      if (hasCuda && storedVsMlrtVersion && storedVsMlrtVersion !== VS_MLRT_VERSION) {
+        logger.dependency(`=== vs-mlrt VERSION CHANGE DETECTED: ${storedVsMlrtVersion} → ${VS_MLRT_VERSION} ===`);
+        logger.dependency('User will be notified to rebuild TensorRT engines');
+      }
+
       // Add TensorRT component if CUDA is available
       if (hasCuda) {
         logger.dependency('=== CUDA DETECTED - Adding TensorRT plugin ===');
@@ -405,6 +413,12 @@ export class DependencyManager {
       for (const component of components) {
         await this.downloadAndInstallComponent(component);
       }
+
+      // Note: We intentionally do NOT update the stored vs-mlrt version here.
+      // The version check in the frontend (App.tsx) will detect the mismatch and
+      // show a notification modal if there are existing engine files that need rebuilding.
+      // The version is only updated after the user acknowledges the notification or
+      // clears their engines, ensuring they are informed of the change.
       
       // Setup embedded Python
       await this.setupEmbeddedPython();

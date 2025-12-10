@@ -157,6 +157,8 @@ export interface ElectronAPI {
   checkVsMlrtVersion: () => Promise<VsMlrtVersionInfo>;
   clearEngineFiles: () => Promise<{ success: boolean; deletedCount: number; error?: string }>;
   updateVsMlrtVersion: () => Promise<{ success: boolean; version?: string; error?: string }>;
+  updateVsMlrtPlugin: () => Promise<{ success: boolean; version?: string; error?: string }>;
+  onVsMlrtUpdateProgress: (callback: (progress: { progress: number; message: string }) => void) => () => void;
 }
 
 export interface DevConsoleLog {

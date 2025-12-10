@@ -155,4 +155,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   checkVsMlrtVersion: () => ipcRenderer.invoke('check-vsmlrt-version'),
   clearEngineFiles: () => ipcRenderer.invoke('clear-engine-files'),
   updateVsMlrtVersion: () => ipcRenderer.invoke('update-vsmlrt-version'),
+  updateVsMlrtPlugin: () => ipcRenderer.invoke('update-vsmlrt-plugin'),
+  onVsMlrtUpdateProgress: (callback: (progress: any) => void) => {
+    const listener = (event: any, progress: any) => callback(progress);
+    ipcRenderer.on('vsmlrt-update-progress', listener);
+    return () => ipcRenderer.removeListener('vsmlrt-update-progress', listener);
+  },
 });
