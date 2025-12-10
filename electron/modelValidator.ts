@@ -8,6 +8,7 @@ export interface OnnxModelInfo {
   inputShape?: number[];
   outputShape?: number[];
   inputName?: string;
+  isStatic?: boolean;
 }
 
 export class ModelValidator {
@@ -58,30 +59,66 @@ export class ModelValidator {
         
         try {
           if (inputNames.length > 0) {
-            const inputMetadata = session.inputMetadata[inputNames[0]];
-            inputShape = inputMetadata?.dims as number[];
-            logger.model(`Input shape: ${inputShape?.join('x') || 'dynamic'}`);
-          }
-          
-          if (outputNames.length > 0) {
-            const outputMetadata = session.outputMetadata[outputNames[0]];
-            outputShape = outputMetadata?.dims as number[];
-            logger.model(`Output shape: ${outputShape?.join('x') || 'dynamic'}`);
+            // Access via handler (internal API used by onnxruntime-node)
+            const handler = (session as any).handler;
+            if (handler && handler.inputMetadata && Array.isArray(handler.inputMetadata) && handler.inputMetadata.length > 0) {
+              const firstInput = handler.inputMetadata[0];
+              // The shape is in the 'shape' property, not 'dims'
+              if (firstInput && firstInput.shape) {
+                inputShape = firstInput.shape;
+                logger.model(`Input shape: ${inputShape!.join('x')}`);
+              }
+            }
+            
+            // Also try to get output shape
+            if (handler && handler.outputMetadata && Array.isArray(handler.outputMetadata) && handler.outputMetadata.length > 0) {
+              const firstOutput = handler.outputMetadata[0];
+              if (firstOutput && firstOutput.shape) {
+                outputShape = firstOutput.shape;
+                logger.model(`Output shape: ${outputShape!.join('x')}`);
+              }
+            }
           }
         } catch (shapeError) {
-          logger.debug('Could not extract shape information:', shapeError);
+          logger.model(`Could not extract shape information: ${shapeError}`);
         }
         
         // Get input name (defaults to 'input' if not found)
         const inputName = inputNames.length > 0 ? inputNames[0] : 'input';
         logger.model(`Input name: ${inputName}`);
+        
+        // Debug: log detailed shape info to understand the data types
+        if (inputShape) {
+          logger.model(`Input shape raw values: ${JSON.stringify(inputShape)}`);
+          logger.model(`Input shape types: ${inputShape.map(dim => typeof dim).join(', ')}`);
+        }
+        
+        // Check if the model is static (all input dimensions are fixed positive values)
+        // ONNX Runtime may return BigInt for dimensions, so we need to handle that
+        // Dynamic dimensions are typically represented as -1, 0, or symbolic strings
+        const isStatic = inputShape !== undefined && 
+          inputShape.length >= 4 && 
+          inputShape.every(dim => {
+            // Handle BigInt (common in ONNX Runtime)
+            if (typeof dim === 'bigint') {
+              return dim > 0n;
+            }
+            // Handle regular numbers
+            if (typeof dim === 'number') {
+              return Number.isInteger(dim) && dim > 0;
+            }
+            // Strings or other types indicate dynamic dimensions
+            return false;
+          });
+        logger.model(`Model type: ${isStatic ? 'Static' : 'Dynamic'}`);
         logger.model('ONNX model validation passed');
         
         return {
           isValid: true,
           inputShape,
           outputShape,
-          inputName
+          inputName,
+          isStatic
         };
         
       } catch (ortError: any) {

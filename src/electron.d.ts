@@ -254,6 +254,7 @@ export interface ValidateOnnxModelResult {
   inputShape?: number[];
   outputShape?: number[];
   inputName?: string;
+  isStatic?: boolean;
 }
 
 export interface ModelInitProgress {

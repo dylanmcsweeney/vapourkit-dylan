@@ -78,31 +78,57 @@ export const useModelImport = (
         const filename = result.split(/[\\/]/).pop() || '';
         const modelName = filename.replace(/\.onnx$/i, '');
         
-        // Validate the model to extract input name
+        // Validate the model to extract input name and detect static shapes
         let extractedInputName = 'input'; // Default fallback
+        let detectedIsStatic = false;
+        let detectedShape: number[] | undefined;
         try {
           const validation = await window.electronAPI.validateOnnxModel(result);
           if (validation.isValid && validation.inputName) {
             extractedInputName = validation.inputName;
             addConsoleLog(`[Model] Detected input name: ${extractedInputName}`);
           }
+          if (validation.isValid && validation.isStatic && validation.inputShape) {
+            detectedIsStatic = true;
+            detectedShape = validation.inputShape;
+            addConsoleLog(`[Model] Detected static model with shape: ${detectedShape.join('x')}`);
+          }
         } catch (validationError) {
           console.warn('Could not validate ONNX model:', validationError);
         }
         
         setImportForm(prev => {
-          const newCommand = generateTrtexecCommand(prev.modelType, prev.useFp32, prev.useStaticShape, extractedInputName);
+          // If static model detected, use static mode and the detected shape
+          const useStatic = detectedIsStatic;
           const channels = prev.modelType === 'tspan' ? '15' : '3';
+          
+          // Build optShapes based on detected shape or defaults
+          let optShapes: string;
+          if (useStatic && detectedShape && detectedShape.length >= 4) {
+            // Use the detected static shape: [batch, channels, height, width]
+            optShapes = `${extractedInputName}:${detectedShape.join('x')}`;
+          } else if (useStatic) {
+            optShapes = `${extractedInputName}:1x${channels}x480x640`;
+          } else {
+            optShapes = `${extractedInputName}:1x${channels}x720x1280`;
+          }
+          
+          const newCommand = generateTrtexecCommand(prev.modelType, prev.useFp32, useStatic, extractedInputName);
+          
           return { 
             ...prev, 
             onnxPath: result,
             modelName: modelName,
             inputName: extractedInputName,
-            customTrtexecParams: newCommand,
+            useStaticShape: useStatic,
+            customTrtexecParams: useStatic && detectedShape && detectedShape.length >= 4
+              ? newCommand.replace(
+                  new RegExp(`--shapes=${extractedInputName}:1x${channels}x\\d+x\\d+`),
+                  `--shapes=${extractedInputName}:${detectedShape.join('x')}`
+                )
+              : newCommand,
             minShapes: `${extractedInputName}:1x${channels}x240x240`,
-            optShapes: prev.useStaticShape 
-              ? `${extractedInputName}:1x${channels}x480x640` 
-              : `${extractedInputName}:1x${channels}x720x1280`,
+            optShapes,
             maxShapes: `${extractedInputName}:1x${channels}x1080x1920`,
           };
         });
