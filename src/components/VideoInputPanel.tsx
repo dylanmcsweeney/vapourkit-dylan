@@ -28,10 +28,10 @@ export function VideoInputPanel({
 }: VideoInputPanelProps) {
   return (
     <div className="flex-shrink-0 bg-dark-elevated rounded-xl border border-gray-800 p-4">
-      <div className="flex items-center justify-between gap-2 mb-3">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between gap-3 mb-3">
+        <div className="flex items-center gap-3">
           <Upload className="w-4 h-4 text-primary-blue" />
-          <h2 className="text-sm font-semibold">Input Video</h2>
+          <h2 className="text-base font-semibold">Input Video</h2>
         </div>
         <button
           onClick={onToggleQueue}

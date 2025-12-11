@@ -27,63 +27,63 @@ export function VideoPreviewPanel({
   const videoPlayerRef = useRef<HTMLVideoElement>(null);
 
   return (
-    <div className="flex-1 bg-dark-elevated rounded-2xl border border-gray-800 overflow-hidden flex flex-col min-h-0">
-      <div className="flex-shrink-0 px-4 py-3 border-b border-gray-800 flex items-center justify-between">
+    <div className="flex-1 bg-dark-elevated rounded-xl border border-gray-800/70 overflow-hidden flex flex-col min-h-0 card-hover">
+      <div className="flex-shrink-0 px-3 py-2 border-b border-gray-800/70 flex items-center justify-between backdrop-blur-sm">
         <div className="flex items-center gap-2">
-          <Video className="w-5 h-5 text-primary-purple" />
-          <h2 className="font-semibold">Output Preview</h2>
+          <Video className="w-4 h-4 text-primary-purple" />
+          <h2 className="font-semibold text-base">Output Preview</h2>
         </div>
         {completedVideoPath && (
           <div className="flex items-center gap-2">
             <button
               onClick={onCompareVideos}
               disabled={segmentEnabled}
-              className={`text-sm transition-colors flex items-center gap-2 ${
+              className={`text-xs transition-colors flex items-center gap-1.5 px-2.5 py-1 rounded-lg ${
                 segmentEnabled 
-                  ? 'text-gray-500 cursor-not-allowed' 
-                  : 'text-primary-purple hover:text-purple-400'
+                  ? 'text-gray-500 cursor-not-allowed bg-dark-surface/50' 
+                  : 'text-primary-purple hover:text-purple-400 hover:bg-primary-purple/10'
               }`}
               title={segmentEnabled ? "Compare not available for segment-processed videos" : "Compare input and output videos side-by-side"}
             >
-              <GitCompare className="w-4 h-4" />
-              Compare
+              <GitCompare className="w-3.5 h-3.5" />
+              <span>Compare</span>
             </button>
             <button
               onClick={onOpenOutputFolder}
-              className="text-sm text-accent-cyan hover:text-cyan-400 transition-colors flex items-center gap-2"
+              className="text-xs text-accent-cyan hover:text-cyan-400 transition-colors flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:bg-accent-cyan/10"
             >
-              <FolderOpen className="w-4 h-4" />
-              Open Folder
+              <FolderOpen className="w-3.5 h-3.5" />
+              <span>Open Folder</span>
             </button>
           </div>
         )}
       </div>
-      <div className="flex-1 flex items-center justify-center p-4 min-h-0">
+      <div className="flex-1 flex items-center justify-center p-3 min-h-0">
         {previewFrame ? (
           <div className="relative w-full h-full flex items-center justify-center">
             <img 
               src={previewFrame} 
               alt="Preview" 
-              className="w-full h-full object-contain rounded-lg"
+              className="w-full h-full object-contain rounded-lg shadow-lg"
               draggable={false}
               onDragStart={(e) => e.preventDefault()}
             />
             {isProcessing && (
-              <div className="absolute top-4 right-4 bg-dark-bg/90 backdrop-blur-sm px-3 py-2 rounded-lg border border-primary-purple/30">
+              <div className="absolute top-3 right-3 bg-dark-bg/90 backdrop-blur-sm px-2.5 py-1.5 rounded-lg border border-primary-purple/30">
                 <div className="flex items-center gap-2">
                   <Loader2 className="w-4 h-4 text-primary-purple animate-spin" />
-                  <span className="text-sm">Processing...</span>
+                  <span className="text-xs">Processing...</span>
                 </div>
               </div>
             )}
           </div>
         ) : completedVideoPath ? (
-          <div className="w-full h-full flex flex-col items-center justify-center gap-4">
+          <div className="w-full h-full flex flex-col items-center justify-center gap-3">
             {videoLoadError ? (
               <div className="text-center">
-                <XCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-                <p className="text-gray-400">Video format not supported in browser</p>
-                <p className="text-sm text-gray-500 mt-2">Use VLC or another player to view</p>
+                <XCircle className="w-14 h-14 text-red-400 mx-auto mb-3 animate-pulse" />
+                <p className="text-gray-400 text-sm">Video format not supported in browser</p>
+                <p className="text-xs text-gray-500 mt-1.5">Use VLC or another player to view</p>
               </div>
             ) : completedVideoBlobUrl ? (
               <>
@@ -91,12 +91,12 @@ export function VideoPreviewPanel({
                   ref={videoPlayerRef}
                   src={completedVideoBlobUrl}
                   controls
-                  className="w-full h-full rounded-lg object-contain"
+                  className="w-full h-full rounded-lg object-contain shadow-lg"
                   onError={onVideoError}
                 />
-                <div className="flex items-center gap-2 text-green-400">
-                  <CheckCircle className="w-5 h-5" />
-                  <span className="text-sm">Upscale complete!</span>
+                <div className="flex items-center gap-2 text-green-400 bg-green-500/10 px-3 py-1.5 rounded-lg border border-green-500/30">
+                  <CheckCircle className="w-4 h-4" />
+                  <span className="text-xs font-medium">Upscale complete!</span>
                 </div>
               </>
             ) : (

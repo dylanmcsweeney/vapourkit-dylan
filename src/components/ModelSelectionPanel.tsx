@@ -92,7 +92,7 @@ export function ModelSelectionPanel({
       {!advancedMode && (
         <div className="flex-shrink-0 bg-dark-elevated rounded-xl border border-gray-800 p-4">
           <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <Sparkles className="w-4 h-4 text-primary-purple" />
               <h2 className="text-base font-semibold">AI Model</h2>
             </div>

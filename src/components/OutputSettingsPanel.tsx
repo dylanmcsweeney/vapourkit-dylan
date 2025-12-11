@@ -21,7 +21,7 @@ export function OutputSettingsPanel({
 }: OutputSettingsPanelProps) {
   return (
     <div className="flex-shrink-0 bg-dark-elevated rounded-xl border border-gray-800 p-4">
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-3 mb-3">
         <Download className="w-4 h-4 text-accent-cyan" />
         <h2 className="text-base font-semibold">Output Settings</h2>
       </div>

@@ -40,7 +40,7 @@ export const Header = ({
     <div className="py-3 px-6 border-b border-gray-800/50">
       <div className="flex items-center justify-between gap-4 relative">
         {/* Left side buttons */}
-        <div className="flex items-center gap-1 flex-shrink-0">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <button
             onClick={onSettingsClick}
             className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-dark-surface rounded-lg flex flex-col items-center gap-0.5 min-w-[56px]"
@@ -90,7 +90,7 @@ export const Header = ({
 
         {/* Center content - hides on smaller screens */}
         <div className="hidden xl:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
-          <div className="flex items-center justify-center gap-2 mb-1">
+          <div className="flex items-center justify-center gap-3 mb-1">
             <Logo />
             <h1 className="text-xl font-bold bg-gradient-to-r from-primary-blue via-primary-purple to-accent-cyan bg-clip-text text-transparent select-none whitespace-nowrap">
               Vapourkit
@@ -104,9 +104,9 @@ export const Header = ({
         {/* Right side buttons */}
         <div className="flex items-center gap-3 flex-shrink-0">
           {developerMode && (onLoadWorkflow || onImportWorkflow || onExportWorkflow) && (
-            <div className="flex items-center gap-1 px-2 py-1 border border-gray-700/50 rounded-lg bg-gray-800/30">
+            <div className="flex items-center gap-2 px-3 py-1.5 border border-gray-700/50 rounded-lg bg-gray-800/30">
               <span className="text-xs text-gray-500 font-medium whitespace-nowrap">Workflow:</span>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-2">
                 {onLoadWorkflow && (
                   <button
                     onClick={onLoadWorkflow}

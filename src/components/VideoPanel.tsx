@@ -19,7 +19,7 @@ export function VideoInfoPanel({
         onClick={() => onToggle(!showVideoInfo)}
         className="w-full px-4 py-3 flex items-center justify-between hover:bg-dark-surface/50 transition-colors"
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <Info className="w-4 h-4 text-primary-blue" />
           <h2 className="text-base font-semibold">Video Info</h2>
         </div>

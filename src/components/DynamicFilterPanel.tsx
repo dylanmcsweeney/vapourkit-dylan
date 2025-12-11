@@ -390,8 +390,8 @@ export function DynamicFilterPanel({
   };
 
   return (
-    <div className="bg-gray-900/50 rounded-lg border border-gray-700/70 p-3">
-      <div className="space-y-2.5">
+    <div className="bg-gray-900/50 rounded-xl border border-gray-700/70 p-4">
+      <div className="space-y-3">
         {/* Header with Add Filter Button */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -416,7 +416,7 @@ export function DynamicFilterPanel({
                 <button
                   onClick={handleToggleAllFilters}
                   disabled={isProcessing}
-                  className="py-1 px-2.5 bg-gray-700/50 border border-gray-600 rounded-md hover:bg-gray-700 hover:border-gray-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 text-gray-300"
+                  className="py-1.5 px-3 bg-gray-700/50 border border-gray-600 rounded-lg hover:bg-gray-700 hover:border-gray-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-gray-300"
                   title={pendingFilters.every(f => f.enabled) ? "Disable all filters" : "Enable all filters"}
                 >
                   {pendingFilters.every(f => f.enabled) ? (
@@ -434,7 +434,7 @@ export function DynamicFilterPanel({
                 <button
                   onClick={handleToggleAllExpanded}
                   disabled={isProcessing}
-                  className="py-1 px-2.5 bg-gray-700/50 border border-gray-600 rounded-md hover:bg-gray-700 hover:border-gray-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 text-gray-300"
+                  className="py-1.5 px-3 bg-gray-700/50 border border-gray-600 rounded-lg hover:bg-gray-700 hover:border-gray-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-gray-300"
                   title={pendingFilters.every(f => expandedFilters.has(f.id)) ? "Collapse all filters" : "Expand all filters"}
                 >
                   {pendingFilters.every(f => expandedFilters.has(f.id)) ? (
@@ -456,7 +456,7 @@ export function DynamicFilterPanel({
               <button
                 onClick={() => setShowAddMenu(!showAddMenu)}
                 disabled={isProcessing}
-                className="py-1 px-2.5 bg-blue-500/15 border border-blue-500/40 rounded-md hover:bg-blue-500/25 hover:border-blue-500/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 text-blue-400"
+                className="py-1.5 px-3 bg-blue-500/15 border border-blue-500/40 rounded-lg hover:bg-blue-500/25 hover:border-blue-500/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-blue-400"
                 title="Add filter"
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -487,7 +487,7 @@ export function DynamicFilterPanel({
         {/* Empty State with Drop Zone */}
         {pendingFilters.length === 0 && (
           <div 
-            className="bg-gray-800/30 border border-dashed border-gray-600/60 rounded-lg p-6 text-center transition-colors hover:border-blue-500/40"
+            className="bg-gray-800/30 border border-dashed border-gray-600/60 rounded-xl p-6 text-center transition-colors hover:border-blue-500/40"
             onDrop={handleEmptyDrop}
             onDragOver={handleEmptyDragOver}
           >

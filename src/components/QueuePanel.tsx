@@ -173,7 +173,7 @@ export function QueuePanel({
 
   return (
     <div 
-      className={`flex flex-col h-full bg-dark-elevated rounded-2xl border overflow-hidden transition-colors ${
+      className={`flex flex-col h-full bg-dark-elevated rounded-xl border overflow-hidden transition-colors ${
         isDraggingFiles ? 'border-primary-purple bg-primary-purple/5' : 'border-gray-800'
       }`}
       onDragOver={(e) => handleDragOver(e)}
@@ -181,11 +181,11 @@ export function QueuePanel({
       onDrop={(e) => handleDrop(e)}
     >
       {/* Header */}
-      <div className="flex-shrink-0 px-4 py-2 border-b border-gray-800 bg-dark-surface flex items-center justify-between">
+      <div className="flex-shrink-0 px-4 py-3 border-b border-gray-800 bg-dark-surface flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <PlayCircle className="w-5 h-5 text-primary-blue" />
-            <h2 className="font-semibold">Processing Queue</h2>
+            <h2 className="font-semibold text-base">Processing Queue</h2>
           </div>
           
           {/* Stats */}
@@ -216,18 +216,18 @@ export function QueuePanel({
         </div>
 
         {/* Actions */}
-        <div className="flex gap-2">
+        <div className="flex gap-3">
             <button
               onClick={onClearCompleted}
               disabled={stats.completed === 0 && stats.error === 0}
-              className="px-3 py-1 text-xs bg-dark-elevated hover:bg-dark-bg disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors border border-gray-700"
+              className="px-3 py-1.5 text-xs bg-dark-elevated hover:bg-dark-bg disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors border border-gray-700"
             >
               Clear Completed
             </button>
             <button
               onClick={onClearAll}
               disabled={isQueueStarted}
-              className="px-3 py-1 text-xs bg-red-900/20 hover:bg-red-900/30 disabled:opacity-50 disabled:cursor-not-allowed text-red-400 rounded-lg transition-colors border border-red-900/30"
+              className="px-3 py-1.5 text-xs bg-red-900/20 hover:bg-red-900/30 disabled:opacity-50 disabled:cursor-not-allowed text-red-400 rounded-lg transition-colors border border-red-900/30"
             >
               Clear All
             </button>
