@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Scissors, Play, SkipBack, SkipForward, ChevronDown, ChevronUp, RefreshCw, Clock, Film } from 'lucide-react';
+import { Scissors, Play, SkipBack, SkipForward, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 import type { VideoInfo, SegmentSelection } from '../electron.d';
 
 export type { SegmentSelection };
@@ -194,10 +194,6 @@ export function SegmentSelector({
     onPreview(segment.startFrame, previewEnd);
   }, [onPreview, videoInfo, segment, fps, totalFrames, previewDuration]);
   
-  const toggleInputMode = useCallback(() => {
-    setInputMode(prev => prev === 'frames' ? 'timecode' : 'frames');
-  }, []);
-  
   // Dragging state for timeline handles
   const [dragging, setDragging] = useState<'start' | 'end' | null>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
@@ -270,74 +266,54 @@ export function SegmentSelector({
   return (
     <div className="bg-dark-elevated rounded-xl border border-gray-800">
       {/* Header */}
-      <button
-        type="button"
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full px-4 py-3 flex items-center justify-between hover:bg-dark-surface transition-colors cursor-pointer"
-      >
-        <div className="flex items-center gap-2">
-          <Scissors className="w-4 h-4 text-orange-400" />
+      <div className="flex items-center justify-between px-4 py-3">
+        <button
+          onClick={() => segment.enabled && setIsExpanded(!isExpanded)}
+          className="flex items-center gap-2 flex-1 hover:opacity-80 transition-opacity min-w-0"
+          disabled={!segment.enabled}
+        >
+          <Scissors className="w-4 h-4 text-orange-400 flex-shrink-0" />
           <h2 className="text-base font-semibold">Segment Selection</h2>
-          {segment.enabled && (
-            <span className="px-2 py-0.5 text-xs bg-orange-500/20 text-orange-400 rounded-full border border-orange-500/30">
-              Active
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-3">
           {segment.enabled && !isExpanded && (
-            <span className="text-sm text-gray-400">
+            <span className="text-sm text-gray-400 ml-2">
               {frameToTimecode(segment.startFrame, fps)} → {frameToTimecode(segmentEndFrame, fps)}
             </span>
           )}
-          {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          {segment.enabled && (
+            isExpanded 
+              ? <ChevronUp className="w-4 h-4 ml-auto flex-shrink-0" /> 
+              : <ChevronDown className="w-4 h-4 ml-auto flex-shrink-0" />
+          )}
+        </button>
+        <div className="flex items-center gap-2 ml-3">
+          <input
+            type="checkbox"
+            id="segment-enabled"
+            checked={segment.enabled}
+            onChange={(e) => handleToggle(e.target.checked)}
+            disabled={isProcessing}
+            className="w-4 h-4 rounded border-gray-700 bg-dark-elevated text-orange-500 focus:ring-2 focus:ring-orange-500 focus:ring-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            title={segment.enabled ? "Disable segment selection" : "Enable segment selection"}
+          />
         </div>
-      </button>
+      </div>
       
       {/* Content */}
-      {isExpanded && (
+      {isExpanded && segment.enabled && (
         <div className="px-4 pb-4 space-y-4 border-t border-gray-800 pt-4">
-          {/* Enable Toggle */}
-          <div className="flex items-center justify-between">
-            <label className="text-sm text-gray-300">Enable segment trimming</label>
-            <button
-              onClick={() => handleToggle(!segment.enabled)}
+          {/* Input Mode Dropdown */}
+          <div className="space-y-2">
+            <label className="block text-sm text-gray-400">Input mode</label>
+            <select
+              value={inputMode}
+              onChange={(e) => setInputMode(e.target.value as 'frames' | 'timecode')}
               disabled={isProcessing}
-              className={`relative w-12 h-6 rounded-full transition-colors ${
-                segment.enabled ? 'bg-orange-500' : 'bg-gray-600'
-              } disabled:opacity-50 disabled:cursor-not-allowed`}
+              className="w-full bg-dark-surface border border-gray-700 rounded-lg px-3 py-2 text-base focus:outline-none focus:border-orange-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <div 
-                className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
-                  segment.enabled ? 'left-7' : 'left-1'
-                }`}
-              />
-            </button>
+              <option value="timecode">Timecode (HH:MM:SS.FF)</option>
+              <option value="frames">Frame Numbers</option>
+            </select>
           </div>
-          
-          {segment.enabled && (
-            <>
-              {/* Input Mode Toggle */}
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-400">Input mode</span>
-                <button
-                  onClick={toggleInputMode}
-                  disabled={isProcessing}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-gray-700/50 border border-gray-600 rounded-lg hover:bg-gray-700 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {inputMode === 'timecode' ? (
-                    <>
-                      <Clock className="w-3.5 h-3.5 text-blue-400" />
-                      Timecode
-                    </>
-                  ) : (
-                    <>
-                      <Film className="w-3.5 h-3.5 text-purple-400" />
-                      Frames
-                    </>
-                  )}
-                </button>
-              </div>
               
               {/* Start/End Inputs */}
               <div className="grid grid-cols-2 gap-4">
@@ -514,8 +490,6 @@ export function SegmentSelector({
                   Use Preview to test your filter settings on a short sample (1-15 seconds) before processing the full segment.
                 </p>
               </div>
-            </>
-          )}
         </div>
       )}
     </div>

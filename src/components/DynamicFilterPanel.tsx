@@ -61,20 +61,30 @@ export function DynamicFilterPanel({
   useEffect(() => {
     const wasProcessing = previousProcessingRef.current;
     
-    // If processing just stopped, ensure all textareas are properly interactive
+    // If processing just stopped, ensure the window/app regains proper focus
     if (wasProcessing && !isProcessing) {
-      // Force a small delay to ensure disabled attributes are removed
+      // Force a small delay to ensure disabled attributes are removed and React has re-rendered
       const timeoutId = setTimeout(() => {
-        // Find all textareas in expanded filters and reset their state if focused
+        // Ensure the window has focus (fixes Electron/Chromium focus desync)
+        window.focus();
+        
+        // If a textarea was focused before processing, restore its interactivity
         const textareas = document.querySelectorAll<HTMLTextAreaElement>('textarea[data-filter-textarea]');
         textareas.forEach(textarea => {
           if (document.activeElement === textarea && !textarea.disabled) {
-            // Blur and refocus to reset the textarea state
+            // Clear and restore focus to reset any stuck input state
+            const scrollPos = textarea.scrollTop;
+            const selectionStart = textarea.selectionStart;
+            const selectionEnd = textarea.selectionEnd;
             textarea.blur();
-            textarea.focus();
+            requestAnimationFrame(() => {
+              textarea.focus();
+              textarea.scrollTop = scrollPos;
+              textarea.setSelectionRange(selectionStart, selectionEnd);
+            });
           }
         });
-      }, 0);
+      }, 50);
       
       return () => clearTimeout(timeoutId);
     }

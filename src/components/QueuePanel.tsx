@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { List, Trash2, ChevronLeft, ChevronRight, PlayCircle, XCircle, RotateCcw, FolderOpen, SplitSquareHorizontal, Scissors, Film } from 'lucide-react';
+import { List, Trash2, ChevronLeft, ChevronRight, PlayCircle, XCircle, RotateCcw, FolderOpen, SplitSquareHorizontal, Scissors, Film, Loader2, GripVertical } from 'lucide-react';
 import type { QueueItem } from '../electron.d';
 
 interface QueuePanelProps {
@@ -37,37 +37,70 @@ export function QueuePanel({
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [isDraggingFiles, setIsDraggingFiles] = useState(false);
   const [thumbnails, setThumbnails] = useState<Record<string, string | null>>({});
+  const [loadingThumbnails, setLoadingThumbnails] = useState<Set<string>>(new Set());
+  const [videoMetadata, setVideoMetadata] = useState<Record<string, { resolution?: string; duration?: string; fps?: number }>>({});
   
   // Track which thumbnails we've already fetched to prevent duplicate requests
   const fetchedThumbnailsRef = useRef<Set<string>>(new Set());
+  const fetchedMetadataRef = useRef<Set<string>>(new Set());
 
-  // Fetch thumbnails for queue items
+  // Fetch thumbnails and metadata for queue items
   useEffect(() => {
     let isMounted = true;
     
-    const fetchThumbnails = async () => {
+    const fetchData = async () => {
       for (const item of queue) {
-        // Skip if we've already attempted to fetch this thumbnail
-        if (fetchedThumbnailsRef.current.has(item.videoPath)) continue;
-        
-        // Mark as fetching to prevent duplicate requests
-        fetchedThumbnailsRef.current.add(item.videoPath);
-        
-        try {
-          const thumbnail = await window.electronAPI.getVideoThumbnail(item.videoPath);
-          if (isMounted) {
-            setThumbnails(prev => ({ ...prev, [item.videoPath]: thumbnail }));
+        // Fetch thumbnail if not already fetched
+        if (!fetchedThumbnailsRef.current.has(item.videoPath)) {
+          fetchedThumbnailsRef.current.add(item.videoPath);
+          setLoadingThumbnails(prev => new Set(prev).add(item.videoPath));
+          
+          try {
+            const thumbnail = await window.electronAPI.getVideoThumbnail(item.videoPath);
+            if (isMounted) {
+              setThumbnails(prev => ({ ...prev, [item.videoPath]: thumbnail }));
+              setLoadingThumbnails(prev => {
+                const next = new Set(prev);
+                next.delete(item.videoPath);
+                return next;
+              });
+            }
+          } catch {
+            if (isMounted) {
+              setThumbnails(prev => ({ ...prev, [item.videoPath]: null }));
+              setLoadingThumbnails(prev => {
+                const next = new Set(prev);
+                next.delete(item.videoPath);
+                return next;
+              });
+            }
           }
-        } catch {
-          // Keep as null if failed
-          if (isMounted) {
-            setThumbnails(prev => ({ ...prev, [item.videoPath]: null }));
+        }
+        
+        // Fetch video metadata if not already fetched
+        if (!fetchedMetadataRef.current.has(item.videoPath)) {
+          fetchedMetadataRef.current.add(item.videoPath);
+          
+          try {
+            const info = await window.electronAPI.getVideoInfo(item.videoPath);
+            if (isMounted) {
+              setVideoMetadata(prev => ({
+                ...prev,
+                [item.videoPath]: {
+                  resolution: info.resolution,
+                  duration: info.duration,
+                  fps: info.fps
+                }
+              }));
+            }
+          } catch {
+            // Silently fail
           }
         }
       }
     };
 
-    fetchThumbnails();
+    fetchData();
     
     return () => {
       isMounted = false;
@@ -202,12 +235,30 @@ export function QueuePanel({
       </div>
 
       {/* Queue Items - Horizontal Scroll */}
-      <div className="flex-1 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+      <div className="flex-1 overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent relative">
+        {/* Drag and Drop Overlay */}
+        {isDraggingFiles && (
+          <div className="absolute inset-0 z-50 bg-primary-purple/10 border-2 border-dashed border-primary-purple rounded-xl m-2 flex items-center justify-center backdrop-blur-sm pointer-events-none">
+            <div className="text-center">
+              <Film className="w-16 h-16 text-primary-purple mx-auto mb-2" />
+              <p className="text-primary-purple font-semibold text-lg">Drop videos to add to queue</p>
+              <p className="text-primary-purple/70 text-sm mt-1">Multiple files supported</p>
+            </div>
+          </div>
+        )}
+        
         {queue.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-500 p-4">
             <List className="w-12 h-12 mb-2 opacity-50" />
-            <p className="text-sm">No videos in queue</p>
-            <p className="text-xs mt-1">Drag & drop multiple videos or use "Add to Queue"</p>
+            <p className="text-sm font-medium">No videos in queue</p>
+            <p className="text-xs mt-2 text-center max-w-xs">
+              Drag & drop multiple videos here or use the "Add to Queue" button to batch process videos
+            </p>
+            <div className="mt-4 text-[10px] text-gray-600 space-y-1">
+              <p>• Click pending/completed items to edit settings</p>
+              <p>• Drag pending items to reorder</p>
+              <p>• Hover thumbnails for quick actions</p>
+            </div>
           </div>
         ) : (
           <div className="flex items-center h-full p-3 gap-3 min-w-max">
@@ -220,6 +271,11 @@ export function QueuePanel({
               const isOver = dragOverIndex === index;
               
               return (
+              <>
+                {/* Drop indicator line */}
+                {isOver && draggedIndex !== null && draggedIndex < index && (
+                  <div className="w-1 h-3/4 bg-blue-500 rounded-full self-center animate-pulse" />
+                )}
               <div
                 key={item.id}
                 draggable={isDraggable}
@@ -248,6 +304,13 @@ export function QueuePanel({
                   isDraggable ? 'cursor-grab active:cursor-grabbing' : ''
                 }`}
               >
+                {/* Drag Handle for Pending Items */}
+                {isDraggable && (
+                  <div className="absolute top-2 left-2 p-1 bg-dark-bg/80 rounded border border-gray-700 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                    <GripVertical className="w-4 h-4 text-gray-400" />
+                  </div>
+                )}
+
                 {/* Top Row: Name, Index, Status, Actions */}
                 <div className="flex items-start justify-between gap-2 mb-2">
                     <p className="text-sm font-medium truncate flex-1 min-w-0" title={item.videoName}>
@@ -282,15 +345,39 @@ export function QueuePanel({
 
                 {/* Thumbnail - Large */}
                 <div className="flex-1 min-h-0 rounded-lg overflow-hidden bg-dark-bg border border-gray-800 flex items-center justify-center relative group/thumb">
-                  {thumbnails[item.videoPath] ? (
+                  {loadingThumbnails.has(item.videoPath) ? (
+                    <Loader2 className="w-8 h-8 text-gray-600 animate-spin" />
+                  ) : thumbnails[item.videoPath] ? (
                     <img 
                       src={thumbnails[item.videoPath]!} 
                       alt="" 
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
                     />
                   ) : (
                     <Film className="w-10 h-10 text-gray-600" />
                   )}
+                  
+                  {/* Video Metadata Overlay - Bottom Left */}
+                  {videoMetadata[item.videoPath] && (
+                    <div className="absolute bottom-1 left-1 flex flex-wrap gap-1 text-[9px]">
+                      {videoMetadata[item.videoPath].resolution && (
+                        <span className="px-1.5 py-0.5 bg-black/80 text-white rounded backdrop-blur-sm">
+                          {videoMetadata[item.videoPath].resolution}
+                        </span>
+                      )}
+                      {videoMetadata[item.videoPath].fps && (
+                        <span className="px-1.5 py-0.5 bg-black/80 text-white rounded backdrop-blur-sm">
+                          {videoMetadata[item.videoPath].fps.toFixed(2)} fps
+                        </span>
+                      )}
+                      {videoMetadata[item.videoPath].duration && (
+                        <span className="px-1.5 py-0.5 bg-black/80 text-white rounded backdrop-blur-sm">
+                          {videoMetadata[item.videoPath].duration}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  
                   {/* Hover Actions Overlay */}
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex items-center justify-center gap-2">
                         {item.status === 'processing' ? (
@@ -419,6 +506,11 @@ export function QueuePanel({
                     </div>
                 )}
               </div>
+              {/* Drop indicator line after */}
+              {isOver && draggedIndex !== null && draggedIndex > index && (
+                <div className="w-1 h-3/4 bg-blue-500 rounded-full self-center animate-pulse" />
+              )}
+              </>
               );
             })}
           </div>

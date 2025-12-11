@@ -556,6 +556,56 @@ function App() {
     };
   }, []);
 
+  // Focus recovery mechanism for Electron/Chromium focus desync issues
+  // This detects when focus is "stuck" and restores it automatically
+  useEffect(() => {
+    let focusCheckTimer: ReturnType<typeof setTimeout> | null = null;
+    let lastInteractionTime = Date.now();
+
+    // Track user interactions to know when they're trying to use the app
+    const handleInteraction = () => {
+      lastInteractionTime = Date.now();
+    };
+
+    // Check if focus is in a broken state
+    const checkFocus = () => {
+      // If user recently interacted but nothing has focus, or focus is on body/html, 
+      // the app might be in a stuck state
+      const activeElement = document.activeElement;
+      const timeSinceInteraction = Date.now() - lastInteractionTime;
+      
+      // Only check if user interacted recently (within 100ms)
+      if (timeSinceInteraction < 100) {
+        // If focus is on body, document, or null after a click/keydown, restore it
+        if (!activeElement || activeElement === document.body || activeElement === document.documentElement) {
+          // Find a focusable element to restore focus to
+          const mainContent = document.querySelector('main') || document.querySelector('[role="main"]');
+          if (mainContent instanceof HTMLElement) {
+            mainContent.focus({ preventScroll: true });
+          } else {
+            // Fallback: blur and re-focus the window
+            window.blur();
+            window.focus();
+          }
+        }
+      }
+    };
+
+    // Listen for interactions that might expose the focus bug
+    document.addEventListener('mousedown', handleInteraction, true);
+    document.addEventListener('keydown', handleInteraction, true);
+    
+    // Periodically check for stuck focus (every 200ms, only acts if user just interacted)
+    const intervalId = setInterval(checkFocus, 200);
+
+    return () => {
+      document.removeEventListener('mousedown', handleInteraction, true);
+      document.removeEventListener('keydown', handleInteraction, true);
+      clearInterval(intervalId);
+      if (focusCheckTimer) clearTimeout(focusCheckTimer);
+    };
+  }, []);
+
   const handleToggleDirectML = (value: boolean): void => {
     toggleDirectML(value);
     addConsoleLog(`Inference backend changed to: ${value ? 'DirectML (ONNX Runtime)' : 'TensorRT'}`);
@@ -584,6 +634,20 @@ function App() {
       addConsoleLog(`Error setting developer mode: ${getErrorMessage(error)}`);
     }
   };
+
+  // Helper to restore focus after modal closes (fixes Electron/Chromium focus desync)
+  const closeModalWithFocusRestore = useCallback((closeFn: () => void) => {
+    closeFn();
+    // Delay focus restoration to allow React to unmount the modal
+    requestAnimationFrame(() => {
+      // Find a suitable element to focus, or just ensure window has focus
+      const mainContent = document.querySelector('main') || document.body;
+      if (mainContent instanceof HTMLElement) {
+        mainContent.focus({ preventScroll: true });
+      }
+      window.focus();
+    });
+  }, []);
 
   // Segment selection handlers
   const handleSegmentChange = useCallback((newSegment: SegmentSelection) => {
@@ -980,7 +1044,7 @@ function App() {
       {/* Modals using extracted components */}
       <ImportModelModal
         show={showImportModal}
-        onClose={() => setShowImportModal(false)}
+        onClose={() => closeModalWithFocusRestore(() => setShowImportModal(false))}
         isImporting={isImporting}
         importForm={importForm}
         setImportForm={setImportForm}
@@ -1004,7 +1068,7 @@ function App() {
 
       <SettingsModal
         show={showSettings}
-        onClose={() => setShowSettings(false)}
+        onClose={() => closeModalWithFocusRestore(() => setShowSettings(false))}
         useDirectML={useDirectML}
         onToggleDirectML={handleToggleDirectML}
         numStreams={numStreams}
@@ -1021,19 +1085,19 @@ function App() {
 
       <AboutModal
         show={showAbout}
-        onClose={() => setShowAbout(false)}
+        onClose={() => closeModalWithFocusRestore(() => setShowAbout(false))}
       />
 
       <PluginsModal
         show={showPlugins}
-        onClose={() => setShowPlugins(false)}
+        onClose={() => closeModalWithFocusRestore(() => setShowPlugins(false))}
         onInstallationComplete={loadTemplates}
       />
 
       <ModelManagerModal
         isOpen={showModelManager}
         models={availableModels}
-        onClose={() => setShowModelManager(false)}
+        onClose={() => closeModalWithFocusRestore(() => setShowModelManager(false))}
         onModelUpdated={async () => {
           await loadModels();
           await loadUninitializedModels();
@@ -1043,14 +1107,14 @@ function App() {
       {showUpdateModal && (
         <UpdateNotificationModal
           updateInfo={updateInfo}
-          onClose={() => setShowUpdateModal(false)}
+          onClose={() => closeModalWithFocusRestore(() => setShowUpdateModal(false))}
         />
       )}
 
       {showVsMlrtModal && vsMlrtVersionInfo && (
         <VsMlrtUpdateModal
           versionInfo={vsMlrtVersionInfo}
-          onClose={() => setShowVsMlrtModal(false)}
+          onClose={() => closeModalWithFocusRestore(() => setShowVsMlrtModal(false))}
           onEnginesCleared={async () => {
             await loadModels();
             await loadUninitializedModels();
