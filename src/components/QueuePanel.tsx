@@ -367,7 +367,7 @@ export function QueuePanel({
                       )}
                       {videoMetadata[item.videoPath].fps && (
                         <span className="px-1.5 py-0.5 bg-black/80 text-white rounded backdrop-blur-sm">
-                          {videoMetadata[item.videoPath].fps.toFixed(2)} fps
+                          {videoMetadata[item.videoPath].fps?.toFixed(2)} fps
                         </span>
                       )}
                       {videoMetadata[item.videoPath].duration && (
