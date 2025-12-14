@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.12.0
+- Remove simple mode to (ironically) simplify codebase
+- Move encoding settings from Settings panel to the right pane, and add easy toggles for common settings
+
 ## 0.11.0
 - Change the way file names are handled for models
 - Overhaul the design of the header to save space

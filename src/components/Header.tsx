@@ -98,10 +98,10 @@ export const Header = ({
                     onClick={onLoadWorkflow}
                     disabled={isProcessing}
                     className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-dark-surface rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex flex-col items-center gap-0.5 min-w-[48px]"
-                    title="Load Workflow"
+                    title="Temporarily Load Workflow"
                   >
                     <FolderOpen className="w-5 h-5" />
-                    <span className="text-xs">Load</span>
+                    <span className="text-xs">Open</span>
                   </button>
                 )}
                 {onImportWorkflow && (

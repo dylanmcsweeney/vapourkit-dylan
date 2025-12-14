@@ -1,6 +1,6 @@
 // OutputSettingsPanel.tsx
 import React, { useState } from 'react';
-import { Download, ChevronDown, ChevronUp } from 'lucide-react';
+import { Download, ChevronDown, ChevronUp, Sliders } from 'lucide-react';
 import type { VideoInfo } from '../electron.d';
 import type { Codec, Preset, Encoder } from '../utils/ffmpegConfig';
 import { 
@@ -129,6 +129,20 @@ export function OutputSettingsPanel({
             <ChevronDown className="w-4 h-4 ml-auto" />
           )}
         </button>
+        
+        {/* Advanced Mode Toggle */}
+        <button
+          onClick={() => setAdvancedMode(!advancedMode)}
+          disabled={isProcessing}
+          className={`ml-2 px-3 py-1.5 text-xs font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 ${
+            advancedMode
+              ? 'bg-accent-cyan/20 text-accent-cyan border border-accent-cyan/30 hover:bg-accent-cyan/30'
+              : 'bg-dark-surface text-gray-400 border border-gray-700 hover:border-gray-600 hover:text-gray-300'
+          }`}
+        >
+          <Sliders className="w-3.5 h-3.5" />
+          Advanced
+        </button>
       </div>
 
       {/* Content */}
@@ -166,21 +180,6 @@ export function OutputSettingsPanel({
                 )}
               </button>
             </div>
-          </div>
-
-          {/* Advanced Mode Toggle */}
-          <div className="flex items-center gap-2 border-t border-gray-800 pt-3">
-            <input
-              type="checkbox"
-              id="advanced-mode"
-              checked={advancedMode}
-              onChange={(e) => setAdvancedMode(e.target.checked)}
-              disabled={isProcessing}
-              className="w-4 h-4 rounded border-gray-700 bg-dark-surface text-accent-cyan focus:ring-2 focus:ring-accent-cyan focus:ring-offset-0 disabled:opacity-50"
-            />
-            <label htmlFor="advanced-mode" className="text-sm text-gray-300 cursor-pointer">
-              Advanced Mode
-            </label>
           </div>
 
           {/* Simple Mode */}
