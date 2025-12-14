@@ -72,6 +72,8 @@ export const useModelImport = (
   const [showAutoBuildModal, setShowAutoBuildModal] = useState(false);
   const [autoBuildModelName, setAutoBuildModelName] = useState('');
   const [autoBuildModelType, setAutoBuildModelType] = useState<'tspan' | 'image'>('image');
+  const [autoBuildIsStatic, setAutoBuildIsStatic] = useState(false);
+  const [autoBuildStaticShape, setAutoBuildStaticShape] = useState<string | null>(null);
   // Guard to ensure completion handlers run only once per import/build
   const completionGuardRef = useRef(false);
 
@@ -277,27 +279,52 @@ export const useModelImport = (
     const modelType = model.modelType || 'image';
     const displayTag = model.displayTag || '';
     
-    // Extract input name from the model
+    // Extract input name and detect static shapes from the model
     let inputName = 'input'; // Default fallback
+    let isStaticModel = false;
+    let detectedShape: number[] | undefined;
     try {
       const validation = await window.electronAPI.validateOnnxModel(model.onnxPath);
       if (validation.isValid && validation.inputName) {
         inputName = validation.inputName;
       }
+      // Detect if this is a static model
+      if (validation.isValid && validation.isStatic && validation.inputShape) {
+        isStaticModel = true;
+        detectedShape = validation.inputShape;
+        addConsoleLog(`[Auto-Build] Detected static model with shape: ${detectedShape.join('x')}`);
+      }
     } catch (validationError) {
       console.warn('Could not validate ONNX model for auto-build:', validationError);
     }
     
-    // Set default shapes based on model type and extracted input name
+    // Set shapes based on whether model is static or dynamic
     const isVideoModel = modelType === 'tspan';
     const channels = isVideoModel ? '15' : '3';
-    const minShapes = `${inputName}:1x${channels}x240x240`;
-    const optShapes = `${inputName}:1x${channels}x720x1280`;
-    const maxShapes = `${inputName}:1x${channels}x1080x1920`;
+    
+    let minShapes: string;
+    let optShapes: string;
+    let maxShapes: string;
+    
+    if (isStaticModel && detectedShape && detectedShape.length >= 4) {
+      // Static model: use the detected shape for all shape params
+      const shapeStr = detectedShape.join('x');
+      minShapes = `${inputName}:${shapeStr}`;
+      optShapes = `${inputName}:${shapeStr}`;
+      maxShapes = `${inputName}:${shapeStr}`;
+      addConsoleLog(`[Auto-Build] Using static shape mode with shape: ${shapeStr}`);
+    } else {
+      // Dynamic model: use default dynamic shape range
+      minShapes = `${inputName}:1x${channels}x240x240`;
+      optShapes = `${inputName}:1x${channels}x720x1280`;
+      maxShapes = `${inputName}:1x${channels}x1080x1920`;
+    }
     
     // Show auto-build modal with model info
     setAutoBuildModelName(model.name);
     setAutoBuildModelType(modelType as 'tspan' | 'image');
+    setAutoBuildIsStatic(isStaticModel);
+    setAutoBuildStaticShape(isStaticModel && detectedShape ? detectedShape.join('x') : null);
     setShowAutoBuildModal(true);
     setIsImporting(true);
     completionGuardRef.current = false;
@@ -312,13 +339,14 @@ export const useModelImport = (
         useFp32: false,
         modelType: modelType as 'tspan' | 'image',
         displayTag: displayTag || undefined,
+        useStaticShape: isStaticModel,
       });
     } catch (error) {
       console.error('Error auto-building model:', error);
       setIsImporting(false);
       setShowAutoBuildModal(false);
     }
-  }, []);
+  }, [addConsoleLog]);
 
   // Listen for model import/build progress
   useEffect(() => {
@@ -432,5 +460,7 @@ export const useModelImport = (
     showAutoBuildModal,
     autoBuildModelName,
     autoBuildModelType,
+    autoBuildIsStatic,
+    autoBuildStaticShape,
   };
 };

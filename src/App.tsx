@@ -306,6 +306,8 @@ function App() {
     showAutoBuildModal,
     autoBuildModelName,
     autoBuildModelType,
+    autoBuildIsStatic,
+    autoBuildStaticShape,
   } = useModelImport(useDirectML, async (enginePath?: string) => {
     await loadModels();
     await loadUninitializedModels();
@@ -1064,6 +1066,8 @@ function App() {
         modelName={autoBuildModelName}
         modelType={autoBuildModelType}
         progress={importProgress}
+        isStatic={autoBuildIsStatic}
+        staticShape={autoBuildStaticShape}
       />
 
       <SettingsModal

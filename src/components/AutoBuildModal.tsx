@@ -1,5 +1,5 @@
 import React from 'react';
-import { Loader2, Info, Sparkles } from 'lucide-react';
+import { Loader2, Info, Sparkles, Lock } from 'lucide-react';
 import type { ModelImportProgress } from '../electron.d';
 
 interface AutoBuildModalProps {
@@ -7,6 +7,8 @@ interface AutoBuildModalProps {
   modelName: string;
   modelType: 'tspan' | 'image';
   progress: ModelImportProgress | null;
+  isStatic?: boolean;
+  staticShape?: string | null;
 }
 
 export const AutoBuildModal: React.FC<AutoBuildModalProps> = ({
@@ -14,13 +16,25 @@ export const AutoBuildModal: React.FC<AutoBuildModalProps> = ({
   modelName,
   modelType,
   progress,
+  isStatic = false,
+  staticShape = null,
 }) => {
   if (!show) return null;
 
   const isVideoModel = modelType === 'tspan';
-  const minResolution = '240x240';
-  const optimalResolution = '720x1280';
-  const maxResolution = '1080x1920';
+  
+  // Parse static shape to extract resolution (format: 1x3x720x1280 or 1x15x720x1280)
+  const getStaticResolution = (): string | null => {
+    if (!staticShape) return null;
+    const parts = staticShape.split('x');
+    if (parts.length >= 4) {
+      // Shape is [batch, channels, height, width]
+      return `${parts[3]}x${parts[2]}`; // width x height
+    }
+    return null;
+  };
+  
+  const staticResolution = getStaticResolution();
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
@@ -53,26 +67,47 @@ export const AutoBuildModal: React.FC<AutoBuildModalProps> = ({
                 <span className="text-gray-400">Precision:</span>
                 <span className="text-white font-medium">FP16</span>
               </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Shape Mode:</span>
+                <span className={`font-medium flex items-center gap-1.5 ${isStatic ? 'text-amber-400' : 'text-accent-cyan'}`}>
+                  {isStatic && <Lock className="w-3.5 h-3.5" />}
+                  {isStatic ? 'Static' : 'Dynamic'}
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* Supported Resolutions */}
+          {/* Supported Resolutions - Different display for static vs dynamic */}
           <div className="bg-dark-surface rounded-lg p-4 border border-gray-700">
-            <h3 className="text-sm font-semibold mb-3 text-gray-300">Supported Resolutions</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-400">Minimum:</span>
-                <span className="text-white font-medium">{minResolution}</span>
+            <h3 className="text-sm font-semibold mb-3 text-gray-300">
+              {isStatic ? 'Fixed Resolution' : 'Supported Resolutions'}
+            </h3>
+            {isStatic ? (
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Resolution:</span>
+                  <span className="text-amber-400 font-medium">{staticResolution || staticShape}</span>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  This model only supports a single fixed resolution.
+                </p>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Optimal:</span>
-                <span className="text-accent-cyan font-medium">{optimalResolution}</span>
+            ) : (
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Minimum:</span>
+                  <span className="text-white font-medium">240x240</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Optimal:</span>
+                  <span className="text-accent-cyan font-medium">720x1280</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Maximum:</span>
+                  <span className="text-white font-medium">1080x1920</span>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Maximum:</span>
-                <span className="text-white font-medium">{maxResolution}</span>
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Progress */}
@@ -104,6 +139,7 @@ export const AutoBuildModal: React.FC<AutoBuildModalProps> = ({
                 <p className="text-xs text-gray-400">
                   The TensorRT engine is being optimized for your GPU. This is a one-time process per model.
                   {isVideoModel && ' This model processes 5-frame temporal sequences for better video quality.'}
+                  {isStatic && ' Static models are optimized for a single resolution.'}
                 </p>
               </div>
             </div>
