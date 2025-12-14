@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { ModelFile, UninitializedModel } from '../electron.d';
 import { filterModels, isModelStillValid } from '../utils/modelUtils';
 
-export const useModels = (isSetupComplete: boolean, useDirectML: boolean, advancedMode: boolean) => {
+export const useModels = (isSetupComplete: boolean, useDirectML: boolean) => {
   const [availableModels, setAvailableModels] = useState<ModelFile[]>([]);
   const [uninitializedModels, setUninitializedModels] = useState<UninitializedModel[]>([]);
   const [selectedModel, setSelectedModel] = useState<string | null>(null);
@@ -28,10 +28,10 @@ export const useModels = (isSetupComplete: boolean, useDirectML: boolean, advanc
     }
   }, []);
 
-  // Filter models based on DirectML setting and advanced mode
+  // Filter models based on DirectML setting
   const filteredModels = useMemo(() => {
-    return filterModels(availableModels, useDirectML, advancedMode);
-  }, [availableModels, useDirectML, advancedMode]);
+    return filterModels(availableModels, useDirectML);
+  }, [availableModels, useDirectML]);
 
   // Update selected model when DirectML setting changes
   // Only validate when useDirectML changes, not on every filteredModels update

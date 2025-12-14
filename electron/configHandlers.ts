@@ -70,18 +70,6 @@ export function registerConfigHandlers(mainWindow: BrowserWindow | null) {
     return { success: true };
   });
 
-  ipcMain.handle('set-developer-mode', async (event, enabled: boolean) => {
-    logger.info(`Setting developer mode: ${enabled}`);
-    await configManager.setDeveloperMode(enabled);
-    logger.setDeveloperMode(enabled, mainWindow);
-    return { success: true, enabled };
-  });
-
-  ipcMain.handle('get-developer-mode', async () => {
-    const enabled = configManager.getDeveloperMode();
-    return { enabled };
-  });
-
   ipcMain.handle('get-ffmpeg-args', async () => {
     const args = configManager.getFfmpegArgs();
     return { args };

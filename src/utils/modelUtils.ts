@@ -1,40 +1,24 @@
 import type { ModelFile } from '../electron.d';
 
 /**
- * Filters and sorts models based on the current backend and advanced mode settings.
+ * Filters and sorts models based on the current backend.
  * 
  * Rules:
  * - DirectML mode: Show only ONNX models
- * - TensorRT mode (Simple): Show engines + ONNX models WITHOUT built engines
- * - TensorRT mode (Advanced): Show ALL models (engines + all ONNX)
+ * - TensorRT mode: Show ALL models (engines + all ONNX for rebuilding)
  * - TensorRT mode: Engines are always sorted to the top
  */
 export function filterModels(
   models: ModelFile[],
-  useDirectML: boolean,
-  advancedMode: boolean
+  useDirectML: boolean
 ): ModelFile[] {
   const filtered = models.filter(model => {
     if (useDirectML) {
       // DirectML: Only show ONNX models
       return model.backend === 'onnx';
     } else {
-      // TensorRT mode: Show engines + conditional ONNX
-      if (model.backend === 'tensorrt') {
-        return true;
-      }
-      
-      if (model.backend === 'onnx') {
-        if (advancedMode) {
-          // Advanced: Show all ONNX models (even if engine exists)
-          return true;
-        } else {
-          // Simple: Only show ONNX models WITHOUT engines (hide duplicates)
-          return !model.hasEngine;
-        }
-      }
-      
-      return false;
+      // TensorRT mode: Show engines + all ONNX (allows rebuilding)
+      return model.backend === 'tensorrt' || model.backend === 'onnx';
     }
   });
 
@@ -57,13 +41,11 @@ export function filterModels(
  * 
  * Rules:
  * - DirectML mode: Show name with display tag if available
- * - TensorRT mode (Simple): Show name with display tag if available
- * - TensorRT mode (Advanced): Add [Unbuilt] prefix for ONNX without engines
+ * - TensorRT mode: Add [Unbuilt] prefix for ONNX without engines
  */
 export function getModelDisplayName(
   model: ModelFile,
-  useDirectML: boolean,
-  advancedMode: boolean
+  useDirectML: boolean
 ): string {
   // Build display name: base name + optional display tag
   let displayName = model.name;
@@ -73,8 +55,8 @@ export function getModelDisplayName(
     displayName = `${displayName} [${model.displayTag}]`;
   }
   
-  // Add [Unbuilt] label only in TensorRT advanced mode for ONNX without engines
-  if (!useDirectML && advancedMode && model.backend === 'onnx' && !model.hasEngine) {
+  // Add [Unbuilt] label in TensorRT mode for ONNX without engines
+  if (!useDirectML && model.backend === 'onnx' && !model.hasEngine) {
     displayName = '[Unbuilt] ' + displayName;
   }
   
@@ -98,25 +80,18 @@ export function modelNeedsBuild(
 
 /**
  * Checks if a model should show the build notification.
- * In advanced mode: ANY ONNX model (allows rebuilding)
- * In simple mode: Only ONNX models without engines
+ * Shows notification for ANY ONNX model (allows rebuilding).
  */
 export function shouldShowBuildNotification(
   model: ModelFile | null,
-  useDirectML: boolean,
-  advancedMode: boolean
+  useDirectML: boolean
 ): boolean {
   if (!model || useDirectML) {
     return false;
   }
   
-  if (advancedMode) {
-    // In advanced mode, show notification for ANY ONNX model (allows rebuilding)
-    return model.backend === 'onnx';
-  } else {
-    // In simple mode, only show for unbuilt ONNX models
-    return model.backend === 'onnx' && !model.hasEngine;
-  }
+  // Show notification for ANY ONNX model (allows rebuilding)
+  return model.backend === 'onnx';
 }
 
 /**
@@ -136,7 +111,7 @@ export function isModelStillValid(
 
 /**
  * Extracts all AI model paths from enabled filters.
- * Used in advanced mode to determine which models are actually being used.
+ * Used to determine which models are actually being used.
  */
 export function getEnabledAIModelPaths(filters: Array<{ 
   enabled: boolean; 

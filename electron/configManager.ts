@@ -20,7 +20,6 @@ interface Filter {
 }
 
 interface AppConfig {
-  developerMode: boolean;
   colorMatrix?: {
     overwriteMatrix: boolean;
     matrix709: boolean;
@@ -59,7 +58,6 @@ interface AppConfig {
 const CONFIG_FILE = path.join(PATHS.CONFIG, 'app-config.json');
 
 const DEFAULT_CONFIG: AppConfig = {
-  developerMode: false,
   colorMatrix: {
     overwriteMatrix: false,
     matrix709: false,
@@ -114,15 +112,6 @@ export class ConfigManager {
     } catch (error) {
       logger.error('Error saving config:', error);
     }
-  }
-
-  getDeveloperMode(): boolean {
-    return this.config.developerMode;
-  }
-
-  async setDeveloperMode(enabled: boolean): Promise<void> {
-    this.config.developerMode = enabled;
-    await this.save();
   }
 
   async setModelMetadata(modelName: string, useFp32: boolean, modelType: ModelType = 'image', displayTag?: string, description?: string, useBf16?: boolean): Promise<void> {

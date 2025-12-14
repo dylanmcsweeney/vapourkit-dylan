@@ -5,9 +5,7 @@ interface DevConsoleLog {
   message: string;
 }
 
-export const useDeveloperMode = () => {
-  const [developerMode, setDeveloperMode] = useState(false);
-  const [isDeveloperModeLoaded, setIsDeveloperModeLoaded] = useState(false);
+export const useConsoleLog = () => {
   const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
   const consoleEndRef = useRef<HTMLDivElement>(null);
 
@@ -20,21 +18,8 @@ export const useDeveloperMode = () => {
     });
   }, []);
 
-  // Initialize developer mode
+  // Listen for developer console logs from backend
   useEffect(() => {
-    const loadDeveloperMode = async (): Promise<void> => {
-      try {
-        const result = await window.electronAPI.getDeveloperMode();
-        setDeveloperMode(result.enabled);
-      } catch (error) {
-        console.error('Error loading developer mode:', error);
-      } finally {
-        setIsDeveloperModeLoaded(true);
-      }
-    };
-    loadDeveloperMode();
-
-    // Listen for developer console logs
     const unsubscribe = window.electronAPI.onDevConsoleLog((log: DevConsoleLog) => {
       const levelPrefix = log.level === 'error' ? '❌' : 
                          log.level === 'warn' ? '⚠️' : 
@@ -57,21 +42,9 @@ export const useDeveloperMode = () => {
     }
   }, [consoleOutput]);
 
-  const toggleDeveloperMode = useCallback(async (enabled: boolean): Promise<void> => {
-    try {
-      await window.electronAPI.setDeveloperMode(enabled);
-      setDeveloperMode(enabled);
-    } catch (error) {
-      console.error('Error setting developer mode:', error);
-    }
-  }, []);
-
   return {
-    developerMode,
-    isDeveloperModeLoaded,
     consoleOutput,
     consoleEndRef,
     addConsoleLog,
-    toggleDeveloperMode,
   };
 };

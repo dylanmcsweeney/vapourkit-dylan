@@ -66,13 +66,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // App information
   getVersion: () => ipcRenderer.invoke('get-version'),
   
-  // Developer mode and folder access
+  // Folder access
   openLogsFolder: () => ipcRenderer.invoke('open-logs-folder'),
   openConfigFolder: () => ipcRenderer.invoke('open-config-folder'),
   openVSPluginsFolder: () => ipcRenderer.invoke('open-vs-plugins-folder'),
   openVSScriptsFolder: () => ipcRenderer.invoke('open-vs-scripts-folder'),
-  setDeveloperMode: (enabled: boolean) => ipcRenderer.invoke('set-developer-mode', enabled),
-  getDeveloperMode: () => ipcRenderer.invoke('get-developer-mode'),
+
+  // Console logs
   onDevConsoleLog: (callback: (log: any) => void) => {
     const listener = (event: any, log: any) => callback(log);
     ipcRenderer.on('dev-console-log', listener);

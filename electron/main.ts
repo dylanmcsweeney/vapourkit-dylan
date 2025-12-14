@@ -20,11 +20,10 @@ if (app.isPackaged) {
   logger.info(`Using portable userData path: ${portableUserDataPath}`);
 }
 
-// Load config and initialize developer mode
+// Load config
 configManager.load().then(() => {
-  const devMode = configManager.getDeveloperMode();
-  logger.initializeDeveloperMode(devMode, windowManager.getWindow());
-  logger.info(`Developer mode initialized: ${devMode}`);
+  logger.setMainWindow(windowManager.getWindow());
+  logger.info('Config loaded');
 });
 
 // ============================================================================

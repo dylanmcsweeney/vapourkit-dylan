@@ -17,7 +17,7 @@ import { Header } from './components/Header';
 import { ModelBuildNotification } from './components/ModelBuildNotification';
 import { useModels } from './hooks/useModels';
 import { useSettings } from './hooks/useSettings';
-import { useDeveloperMode } from './hooks/useDeveloperMode';
+import { useConsoleLog } from './hooks/useConsoleLog';
 import { useModelImport } from './hooks/useModelImport';
 import { useVideoDragDrop } from './hooks/useVideoDragDrop';
 import { useFilterTemplates } from './hooks/useFilterTemplates';
@@ -54,7 +54,7 @@ function App() {
   const rightPanelRef = useRef<HTMLDivElement>(null);
 
   // Setup and initialization hooks
-  const { developerMode, isDeveloperModeLoaded, consoleOutput, consoleEndRef, addConsoleLog, toggleDeveloperMode } = useDeveloperMode();
+  const { consoleOutput, consoleEndRef, addConsoleLog } = useConsoleLog();
   const { isSetupComplete, isCheckingDeps, hasCudaSupport, setupProgress, isSettingUp, handleSetup } = useSetup(addConsoleLog);
   const { useDirectML, toggleDirectML, numStreams, updateNumStreams } = useSettings(hasCudaSupport);
   const { 
@@ -77,11 +77,11 @@ function App() {
     loadModels,
     loadUninitializedModels,
     uninitializedModels,
-  } = useModels(isSetupComplete, useDirectML, developerMode);
+  } = useModels(isSetupComplete, useDirectML);
   const { templates: filterTemplates, saveTemplate, deleteTemplate, loadTemplates } = useFilterTemplates(isSetupComplete);
   
   // State management hooks
-  const { filters, handleSetFilters } = useFilterConfig(isSetupComplete, developerMode, isDeveloperModeLoaded, addConsoleLog);
+  const { filters, handleSetFilters } = useFilterConfig(isSetupComplete, addConsoleLog);
   const { colorMatrixSettings, handleColorMatrixChange } = useColorMatrix(isSetupComplete, addConsoleLog);
   const { panelSizes, panelSizesLoaded, handlePanelResize } = usePanelLayout(isSetupComplete, addConsoleLog);
   const {
@@ -102,7 +102,7 @@ function App() {
   // Model manager modal state
   const [showModelManager, setShowModelManager] = useState(false);
   
-  // Segment selection state (for advanced mode)
+  // Segment selection state
   const [segment, setSegment] = useState<SegmentSelection>({
     enabled: false,
     startFrame: 0,
@@ -316,8 +316,8 @@ function App() {
       setSelectedModel(enginePath);
       addConsoleLog(`Auto-selected model: ${enginePath}`);
       
-      // In advanced mode, also update AI Model filters to use the new engine
-      if (developerMode && filters.length > 0) {
+      // Also update AI Model filters to use the new engine
+      if (filters.length > 0) {
         const enginePortableName = getPortableModelName(enginePath);
         const updatedFilters = filters.map(filter => {
           if (filter.filterType === 'aiModel' && filter.modelPath) {
@@ -339,7 +339,7 @@ function App() {
   }, addConsoleLog);
   
   // Backend operations hook
-  const { handleReloadBackend, handleBuildModel, handleAutoBuild } = useBackendOperations({
+  const { handleReloadBackend, handleBuildModel } = useBackendOperations({
     onLog: addConsoleLog,
     loadModels,
     loadUninitializedModels,
@@ -613,30 +613,6 @@ function App() {
     addConsoleLog(`Inference backend changed to: ${value ? 'DirectML (ONNX Runtime)' : 'TensorRT'}`);
   };
 
-  const handleToggleDeveloperMode = async (value: boolean): Promise<void> => {
-    try {
-      await toggleDeveloperMode(value);
-      addConsoleLog(`Developer mode ${value ? 'enabled' : 'disabled'}`);
-      
-      // Clear any loaded workflow when switching to simple mode
-      if (!value) {
-        if (currentWorkflow) {
-          await handleClearWorkflow();
-          addConsoleLog('Workflow cleared when switching to simple mode');
-        }
-        
-        // Disable all filters when switching to simple mode
-        if (filters.length > 0) {
-          const disabledFilters = filters.map(f => ({ ...f, enabled: false }));
-          handleSetFilters(disabledFilters);
-          addConsoleLog('All filters disabled - upscaling only');
-        }
-      }
-    } catch (error) {
-      addConsoleLog(`Error setting developer mode: ${getErrorMessage(error)}`);
-    }
-  };
-
   // Helper to restore focus after modal closes (fixes Electron/Chromium focus desync)
   const closeModalWithFocusRestore = useCallback((closeFn: () => void) => {
     closeFn();
@@ -699,38 +675,23 @@ function App() {
     
     // Prevent processing if using TensorRT mode with ONNX models
     if (!useDirectML) {
-      // Check simple mode selected model (only applies in simple mode)
-      if (!developerMode && selectedModel && selectedModel.toLowerCase().endsWith('.onnx')) {
-        return true;
-      }
-      
-      // Check advanced mode AI model filters
-      if (developerMode) {
-        const hasOnnxModel = filters.some(f => 
-          f.enabled && 
-          f.filterType === 'aiModel' && 
-          f.modelPath && 
-          f.modelPath.toLowerCase().endsWith('.onnx')
-        );
-        if (hasOnnxModel) return true;
-      }
+      // Check AI model filters for unbuilt ONNX models
+      const hasOnnxModel = filters.some(f => 
+        f.enabled && 
+        f.filterType === 'aiModel' && 
+        f.modelPath && 
+        f.modelPath.toLowerCase().endsWith('.onnx')
+      );
+      if (hasOnnxModel) return true;
     }
     
-    // In advanced mode, allow processing without AI model
-    // as long as there's at least one enabled filter or no filters at all
-    if (developerMode) {
-      // Allow if there are no filters (pure processing)
-      if (filters.length === 0) return false;
-      
-      // Allow if at least one filter is enabled (AI model or custom)
-      const hasEnabledFilter = filters.some(f => f.enabled);
-      return !hasEnabledFilter;
-    }
+    // Allow processing without AI model as long as there's at least one enabled filter or no filters at all
+    // Allow if there are no filters (pure processing)
+    if (filters.length === 0) return false;
     
-    // In simple mode, require a selected model
-    if (!selectedModel) return true;
-    
-    return false;
+    // Allow if at least one filter is enabled (AI model or custom)
+    const hasEnabledFilter = filters.some(f => f.enabled);
+    return !hasEnabledFilter;
   })();
 
   // Setup Screen
@@ -753,13 +714,11 @@ function App() {
       {/* Header */}
       <Header
         isProcessing={isProcessing}
-        developerMode={developerMode}
         useDirectML={useDirectML}
         onSettingsClick={() => setShowSettings(true)}
         onPluginsClick={() => setShowPlugins(true)}
         onReloadBackend={handleReloadBackend}
         onAboutClick={() => setShowAbout(true)}
-        onToggleDeveloperMode={handleToggleDeveloperMode}
         onToggleDirectML={handleToggleDirectML}
         onLoadWorkflow={handleLoadWorkflow}
         onImportWorkflow={handleImportWorkflow}
@@ -772,13 +731,10 @@ function App() {
       {/* Notification Bar for Uninitialized Models */}
       <ModelBuildNotification
         useDirectML={useDirectML}
-        selectedModel={selectedModel}
         filteredModels={filteredModels}
         uninitializedModels={uninitializedModels}
-        advancedMode={developerMode}
         filters={filters}
         onBuildModel={handleBuildModel}
-        onAutoBuild={handleAutoBuild}
       />
 
       {/* Main Content */}
@@ -824,29 +780,27 @@ function App() {
                     )}
                   </div>
 
-                  {/* Developer Console */}
-                  {developerMode && (
-                    <div className="flex-shrink-0 bg-dark-elevated rounded-2xl border border-gray-800 overflow-hidden">
-                      <button
-                        onClick={() => setShowConsole(!showConsole)}
-                        className="w-full px-4 py-3 border-b border-gray-800 flex items-center justify-between hover:bg-dark-surface transition-colors"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Terminal className="w-5 h-5 text-accent-cyan" />
-                          <h2 className="font-semibold">Developer Console</h2>
-                        </div>
-                        {showConsole ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                      </button>
-                      {showConsole && (
-                        <div className="p-4 max-h-64 overflow-y-auto font-mono text-sm bg-black/30">
-                          {consoleOutput.map((log, i) => (
-                            <div key={i} className="text-gray-300 mb-1">{log}</div>
-                          ))}
-                          <div ref={consoleEndRef} />
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  {/* Console */}
+                  <div className="flex-shrink-0 bg-dark-elevated rounded-2xl border border-gray-800 overflow-hidden">
+                    <button
+                      onClick={() => setShowConsole(!showConsole)}
+                      className="w-full px-4 py-3 border-b border-gray-800 flex items-center justify-between hover:bg-dark-surface transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Terminal className="w-5 h-5 text-accent-cyan" />
+                        <h2 className="font-semibold">Console</h2>
+                      </div>
+                      {showConsole ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                    </button>
+                    {showConsole && (
+                      <div className="p-4 max-h-64 overflow-y-auto font-mono text-sm bg-black/30">
+                        {consoleOutput.map((log, i) => (
+                          <div key={i} className="text-gray-300 mb-1">{log}</div>
+                        ))}
+                        <div ref={consoleEndRef} />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </Panel>
 
@@ -871,17 +825,14 @@ function App() {
                   />
                   
                   <ModelSelectionPanel
-                    selectedModel={selectedModel}
                     filteredModels={filteredModels}
                     isProcessing={isProcessing}
-                    advancedMode={developerMode}
                     useDirectML={useDirectML}
                     colorMatrixSettings={colorMatrixSettings}
                     videoInfo={videoInfo}
                     filterTemplates={filterTemplates}
                     filters={filters}
                     segment={segment}
-                    onModelChange={setSelectedModel}
                     onImportClick={() => {
                       setModalMode('import');
                       setShowImportModal(true);

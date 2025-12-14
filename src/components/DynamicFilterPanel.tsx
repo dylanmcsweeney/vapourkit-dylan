@@ -667,7 +667,7 @@ export function DynamicFilterPanel({
                                     <optgroup label="━━━ TensorRT Engines ━━━">
                                       {engineModels.map((model) => (
                                         <option key={model.path} value={model.path}>
-                                          {getModelDisplayName(model, useDirectML, true)}
+                                          {getModelDisplayName(model, useDirectML)}
                                         </option>
                                       ))}
                                     </optgroup>
@@ -676,7 +676,7 @@ export function DynamicFilterPanel({
                                     <optgroup label="━━━ ONNX Models ━━━">
                                       {onnxModels.map((model) => (
                                         <option key={model.path} value={model.path}>
-                                          {getModelDisplayName(model, useDirectML, true)}
+                                          {getModelDisplayName(model, useDirectML)}
                                         </option>
                                       ))}
                                     </optgroup>
@@ -686,7 +686,7 @@ export function DynamicFilterPanel({
                             })()}
                             {useDirectML && availableModels.map((model) => (
                               <option key={model.path} value={model.path}>
-                                {getModelDisplayName(model, useDirectML, true)}
+                                {getModelDisplayName(model, useDirectML)}
                               </option>
                             ))}
                           </select>

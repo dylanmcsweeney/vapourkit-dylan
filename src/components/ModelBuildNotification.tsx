@@ -4,37 +4,21 @@ import { shouldShowBuildNotification, getEnabledAIModelPaths } from '../utils/mo
 
 interface ModelBuildNotificationProps {
   useDirectML: boolean;
-  selectedModel: string | null;
   filteredModels: ModelFile[];
   uninitializedModels: UninitializedModel[];
-  advancedMode: boolean;
   filters: Filter[];
   onBuildModel: (model: UninitializedModel) => void;
-  onAutoBuild: (model: UninitializedModel) => void;
 }
 
 export const ModelBuildNotification = ({
   useDirectML,
-  selectedModel,
   filteredModels,
   uninitializedModels,
-  advancedMode,
   filters,
-  onBuildModel,
-  onAutoBuild
+  onBuildModel
 }: ModelBuildNotificationProps) => {
-  // Collect all model paths that are being used
-  const modelsInUse: string[] = [];
-  
-  if (advancedMode) {
-    // In advanced mode, check filter selections
-    modelsInUse.push(...getEnabledAIModelPaths(filters));
-  } else {
-    // In simple mode, check selectedModel
-    if (selectedModel) {
-      modelsInUse.push(selectedModel);
-    }
-  }
+  // Collect all model paths that are being used from filter selections
+  const modelsInUse = getEnabledAIModelPaths(filters);
   
   // If no models are in use, no notification needed
   if (modelsInUse.length === 0) return null;
@@ -43,7 +27,7 @@ export const ModelBuildNotification = ({
   let unbuiltModelPath: string | null = null;
   for (const modelPath of modelsInUse) {
     const modelObj = filteredModels.find(m => m.path === modelPath);
-    if (shouldShowBuildNotification(modelObj ?? null, useDirectML, advancedMode)) {
+    if (shouldShowBuildNotification(modelObj ?? null, useDirectML)) {
       unbuiltModelPath = modelPath;
       break;
     }
@@ -63,27 +47,19 @@ export const ModelBuildNotification = ({
           <AlertCircle className="w-5 h-5 text-yellow-400 flex-shrink-0" />
           <div>
             <p className="text-sm font-medium text-white">
-              {advancedMode ? 'A model in your filter workflow' : 'Selected model'} needs to be built before use
+              A model in your filter workflow needs to be built before use
             </p>
             <p className="text-xs text-gray-300">
-              {advancedMode 
-                ? 'Click to configure and build TensorRT engine for optimal performance'
-                : 'Click to build TensorRT engine with preconfigured settings'}
+              Click to configure and build TensorRT engine for optimal performance
             </p>
           </div>
         </div>
         <button
-          onClick={() => {
-            if (advancedMode) {
-              onBuildModel(uninitModel);
-            } else {
-              onAutoBuild(uninitModel);
-            }
-          }}
+          onClick={() => onBuildModel(uninitModel)}
           className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold px-4 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 flex-shrink-0"
         >
           <Sparkles className="w-4 h-4" />
-          {advancedMode ? 'Configure & Build' : 'Build Model'}
+          Configure & Build
         </button>
       </div>
     </div>

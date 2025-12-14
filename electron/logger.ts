@@ -57,8 +57,7 @@ log.transports.console.level = process.env.NODE_ENV === 'development' ? 'debug' 
 log.transports.file.format = '[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] {text}';
 log.transports.console.format = '[{h}:{i}:{s}.{ms}] [{level}] {text}';
 
-// Developer mode state
-let developerMode = false;
+// Main window reference for sending logs to renderer
 let mainWindowRef: BrowserWindow | null = null;
 
 // Log application start
@@ -148,19 +147,8 @@ export const logger = {
     sendToRenderer('info', '-'.repeat(80));
   },
   
-  // Developer mode control
-  setDeveloperMode: (enabled: boolean, window: BrowserWindow | null) => {
-    developerMode = enabled;
-    mainWindowRef = window;
-    log.info(`Developer mode ${enabled ? 'enabled' : 'disabled'}`);
-    // Note: Persistence is handled by configManager in main.ts
-  },
-  
-  getDeveloperMode: () => developerMode,
-  
-  // Initialize developer mode from config
-  initializeDeveloperMode: (enabled: boolean, window: BrowserWindow | null) => {
-    developerMode = enabled;
+  // Set main window reference for console log forwarding
+  setMainWindow: (window: BrowserWindow | null) => {
     mainWindowRef = window;
   }
 };

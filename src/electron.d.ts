@@ -78,13 +78,13 @@ export interface ElectronAPI {
   // App information
   getVersion: () => Promise<{ version: string }>;
   
-  // Developer mode and folder access
+  // Folder access
   openLogsFolder: () => Promise<{ success: boolean }>;
   openConfigFolder: () => Promise<{ success: boolean }>;
   openVSPluginsFolder: () => Promise<{ success: boolean }>;
   openVSScriptsFolder: () => Promise<{ success: boolean }>;
-  setDeveloperMode: (enabled: boolean) => Promise<{ success: boolean; enabled: boolean }>;
-  getDeveloperMode: () => Promise<{ enabled: boolean }>;
+  
+  // Console logs
   onDevConsoleLog: (callback: (log: DevConsoleLog) => void) => () => void;
   
   // Color matrix settings

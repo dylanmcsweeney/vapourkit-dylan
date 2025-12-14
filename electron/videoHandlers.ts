@@ -233,9 +233,9 @@ export function registerVideoHandlers(
           logger.upscale(`Model type: ${config.modelType}`);
         }
         
-        // Log if simple mode default filter was created
+        // Log if default filter was auto-created (no filters were enabled)
         if (config.filters && config.filters.length === 1 && config.filters[0].id === 'default-upscale') {
-          logger.upscale('Simple mode: Created default upscale filter');
+          logger.upscale('Created default upscale filter from model path');
         }
         
         const scriptPath = await scriptGenerator.generateScript(config);
@@ -569,7 +569,7 @@ function createScriptConfig(
     useFp32 = configManager.isModelFp32(modelPath);
   }
   
-  // Handle simple mode: if upscaling is enabled with a model but no filters are enabled,
+  // If upscaling is enabled with a model but no filters are enabled,
   // create a default filter from the selected model
   if (isUpscaling && modelPath && (!filters || filters.filter(f => f.enabled).length === 0)) {
     filters = [{

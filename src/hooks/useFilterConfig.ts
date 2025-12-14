@@ -4,8 +4,6 @@ import { getErrorMessage } from '../types/errors';
 
 export function useFilterConfig(
   isSetupComplete: boolean, 
-  developerMode: boolean,
-  isDeveloperModeLoaded: boolean,
   onLog: (message: string) => void
 ) {
   const [filters, setFilters] = useState<Filter[]>(() => {
@@ -19,25 +17,18 @@ export function useFilterConfig(
       try {
         const savedFilters = await window.electronAPI.getFilterConfigurations();
         if (savedFilters && savedFilters.length > 0) {
-          // If not in developer mode, disable all filters to prevent errors
-          const filtersToSet = developerMode 
-            ? savedFilters 
-            : savedFilters.map(f => ({ ...f, enabled: false }));
-          setFilters(filtersToSet);
+          setFilters(savedFilters);
           onLog(`Loaded ${savedFilters.length} filter configuration(s)`);
-          if (!developerMode && savedFilters.some(f => f.enabled)) {
-            onLog('Filters disabled - simple mode active');
-          }
         }
       } catch (error) {
         onLog(`Error loading filter configurations: ${getErrorMessage(error)}`);
       }
     };
 
-    if (isSetupComplete && isDeveloperModeLoaded) {
+    if (isSetupComplete) {
       loadFilterConfigurations();
     }
-  }, [isSetupComplete, isDeveloperModeLoaded, onLog, developerMode]);
+  }, [isSetupComplete, onLog]);
 
   // Wrapper to persist state changes
   const handleSetFilters = (value: Filter[]) => {

@@ -1,15 +1,13 @@
-import { Info, Settings, RefreshCw, Code, Download, Upload, FolderOpen, X, Plug, Cpu } from 'lucide-react';
+import { Info, Settings, RefreshCw, Download, Upload, FolderOpen, X, Plug, Cpu } from 'lucide-react';
 import { Logo } from './Logo';
 
 interface HeaderProps {
   isProcessing: boolean;
-  developerMode: boolean;
   useDirectML: boolean;
   onSettingsClick: () => void;
   onPluginsClick: () => void;
   onReloadBackend: () => void;
   onAboutClick: () => void;
-  onToggleDeveloperMode: (value: boolean) => void;
   onToggleDirectML: (value: boolean) => void;
   onLoadWorkflow?: () => void;
   onImportWorkflow?: () => void;
@@ -21,13 +19,11 @@ interface HeaderProps {
 
 export const Header = ({ 
   isProcessing, 
-  developerMode, 
   useDirectML,
   onSettingsClick, 
   onPluginsClick, 
   onReloadBackend, 
   onAboutClick, 
-  onToggleDeveloperMode,
   onToggleDirectML,
   onLoadWorkflow,
   onImportWorkflow,
@@ -56,16 +52,6 @@ export const Header = ({
           >
             <Plug className="w-5 h-5" />
             <span className="text-xs">Plugins</span>
-          </button>
-          <button
-            onClick={() => onToggleDeveloperMode(!developerMode)}
-            className={`transition-colors p-2 hover:bg-dark-surface rounded-lg flex flex-col items-center gap-0.5 min-w-[56px] ${
-              developerMode ? 'text-accent-cyan' : 'text-gray-400 hover:text-white'
-            }`}
-            title={developerMode ? "Advanced Mode: ON" : "Advanced Mode: OFF"}
-          >
-            <Code className="w-5 h-5" />
-            <span className="text-xs">Advanced</span>
           </button>
           <button
             onClick={() => onToggleDirectML(!useDirectML)}
@@ -103,7 +89,7 @@ export const Header = ({
 
         {/* Right side buttons */}
         <div className="flex items-center gap-3 flex-shrink-0">
-          {developerMode && (onLoadWorkflow || onImportWorkflow || onExportWorkflow) && (
+          {(onLoadWorkflow || onImportWorkflow || onExportWorkflow) && (
             <div className="flex items-center gap-2 px-3 py-1.5 border border-gray-700/50 rounded-lg bg-gray-800/30">
               <span className="text-xs text-gray-500 font-medium whitespace-nowrap">Workflow:</span>
               <div className="flex items-center gap-2">
