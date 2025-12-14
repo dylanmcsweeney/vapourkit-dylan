@@ -47,9 +47,6 @@ import { ModelSelectionPanel } from './components/ModelSelectionPanel';
 import { getPortableModelName } from './utils/modelUtils';
 
 function App() {
-  // Output format state
-  const [outputFormat, setOutputFormat] = useState<string>('mkv');
-  
   // Ref to preserve scroll position in right panel
   const rightPanelRef = useRef<HTMLDivElement>(null);
 
@@ -60,10 +57,11 @@ function App() {
   const { 
     ffmpegArgs, 
     processingFormat,
+    outputFormat,
     videoCompareArgs,
     handleUpdateFfmpegArgs, 
-    handleResetFfmpegArgs, 
     handleUpdateProcessingFormat,
+    handleUpdateOutputFormat,
     handleUpdateVideoCompareArgs,
     handleResetVideoCompareArgs
   } = useProcessingConfig(isSetupComplete);
@@ -220,7 +218,7 @@ function App() {
     setIsQueueStopping: queueActions.setIsQueueStopping,
     setSelectedModel,
     setFilters: handleSetFilters,
-    setOutputFormat,
+    setOutputFormat: handleUpdateOutputFormat,
     toggleDirectML,
     updateNumStreams,
     setSegment,
@@ -397,7 +395,7 @@ function App() {
           handleSetFilters(preQueueWorkflow.filters);
         }
         if (preQueueWorkflow.outputFormat !== outputFormat) {
-          setOutputFormat(preQueueWorkflow.outputFormat);
+          handleUpdateOutputFormat(preQueueWorkflow.outputFormat);
         }
         if (preQueueWorkflow.useDirectML !== useDirectML) {
           toggleDirectML(preQueueWorkflow.useDirectML);
@@ -851,9 +849,11 @@ function App() {
                     videoInfo={videoInfo}
                     outputPath={outputPath}
                     outputFormat={outputFormat}
+                    ffmpegArgs={ffmpegArgs}
                     isProcessing={isProcessing}
-                    onFormatChange={setOutputFormat}
+                    onFormatChange={handleUpdateOutputFormat}
                     onSelectOutputFile={handleSelectOutputFile}
+                    onFfmpegArgsChange={handleUpdateFfmpegArgs}
                   />
 
                   {/* Video Info */}
@@ -1028,9 +1028,6 @@ function App() {
         onToggleDirectML={handleToggleDirectML}
         numStreams={numStreams}
         onUpdateNumStreams={updateNumStreams}
-        ffmpegArgs={ffmpegArgs}
-        onUpdateFfmpegArgs={handleUpdateFfmpegArgs}
-        onResetFfmpegArgs={handleResetFfmpegArgs}
         processingFormat={processingFormat}
         onUpdateProcessingFormat={handleUpdateProcessingFormat}
         videoCompareArgs={videoCompareArgs}

@@ -8,9 +8,6 @@ interface SettingsModalProps {
   onToggleDirectML: (value: boolean) => void;
   numStreams: number;
   onUpdateNumStreams: (value: number) => void;
-  ffmpegArgs: string;
-  onUpdateFfmpegArgs: (args: string) => void;
-  onResetFfmpegArgs: () => void;
   processingFormat: string;
   onUpdateProcessingFormat: (format: string) => void;
   videoCompareArgs: string;
@@ -27,9 +24,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onToggleDirectML,
   numStreams,
   onUpdateNumStreams,
-  ffmpegArgs,
-  onUpdateFfmpegArgs,
-  onResetFfmpegArgs,
   processingFormat,
   onUpdateProcessingFormat,
   videoCompareArgs,
@@ -294,45 +288,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <p className="text-xs text-gray-400 mt-2">
                       YUV is the color family, 4:2:0 the chroma subsampling, and 8-Bit the bit depth. The default video is typically YUV 4:2:0 8-Bit.
                     </p>
-                  </label>
-                </div>
-              </div>
-
-              {/* FFmpeg Configuration Section */}
-              <div>
-                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                  <Terminal className="w-5 h-5 text-accent-cyan" />
-                  FFmpeg Encoding
-                </h3>
-                
-                <div className="bg-dark-surface rounded-lg p-4 border border-gray-700">
-                  <label className="block">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-sm font-medium text-white">Video Encoding Arguments</p>
-                      <button
-                        onClick={onResetFfmpegArgs}
-                        className="text-xs text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1"
-                      >
-                        <RotateCcw className="w-3 h-3" />
-                        Reset to Default
-                      </button>
-                    </div>
-                    <input
-                      type="text"
-                      value={ffmpegArgs}
-                      onChange={(e) => onUpdateFfmpegArgs(e.target.value)}
-                      className="w-full bg-dark-bg border border-gray-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-accent-cyan font-mono"
-                      placeholder="FFmpeg encoding arguments"
-                    />
-                    <p className="text-xs text-gray-400 mt-2">
-                      FFmpeg arguments for video encoding. Control output quality, speed, and behavior.
-                    </p>
-                    <div className="mt-3 p-3 bg-dark-bg rounded border border-gray-700">
-                      <p className="text-xs font-medium text-white mb-2">Recommended options:</p>
-                      <ul className="text-xs text-gray-400 space-y-1">
-                        <li><code className="text-blue-400">-map_metadata 1</code> - Copy metadata from input</li>
-                      </ul>
-                    </div>
                   </label>
                 </div>
               </div>

@@ -86,6 +86,17 @@ export function registerConfigHandlers(mainWindow: BrowserWindow | null) {
     return { args };
   });
 
+  ipcMain.handle('get-output-format', async () => {
+    const format = configManager.getOutputFormat();
+    return { format };
+  });
+
+  ipcMain.handle('set-output-format', async (event, format: string) => {
+    logger.info(`Setting output format: ${format}`);
+    await configManager.setOutputFormat(format);
+    return { success: true };
+  });
+
   ipcMain.handle('get-processing-format', async () => {
     const format = configManager.getProcessingFormat();
     return { format };

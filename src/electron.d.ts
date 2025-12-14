@@ -100,6 +100,10 @@ export interface ElectronAPI {
   getProcessingFormat: () => Promise<{ format: string }>;
   setProcessingFormat: (format: string) => Promise<{ success: boolean }>;
 
+  // Output format
+  getOutputFormat: () => Promise<{ format: string }>;
+  setOutputFormat: (format: string) => Promise<{ success: boolean }>;
+
   // Video compare configuration
   getVideoCompareArgs: () => Promise<{ args: string }>;
   setVideoCompareArgs: (args: string) => Promise<{ success: boolean }>;

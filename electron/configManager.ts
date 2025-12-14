@@ -41,6 +41,7 @@ interface AppConfig {
   upscalePosition?: number;
   ffmpegArgs?: string;
   processingFormat?: string;
+  outputFormat?: string;
   videoCompareArgs?: string;
   vsMlrtVersion?: string;
   models: {
@@ -79,6 +80,7 @@ const DEFAULT_CONFIG: AppConfig = {
   upscalePosition: 0,
   ffmpegArgs: DEFAULT_FFMPEG_ARGS,
   processingFormat: 'vs.YUV420P8',
+  outputFormat: 'mkv',
   videoCompareArgs: DEFAULT_VIDEO_COMPARE_ARGS,
   vsMlrtVersion: undefined,
   models: {}
@@ -247,6 +249,15 @@ export class ConfigManager {
 
   getDefaultFfmpegArgs(): string {
     return DEFAULT_FFMPEG_ARGS;
+  }
+
+  getOutputFormat(): string {
+    return this.config.outputFormat ?? 'mkv';
+  }
+
+  async setOutputFormat(format: string): Promise<void> {
+    this.config.outputFormat = format;
+    await this.save();
   }
 
   getVideoCompareArgs(): string {

@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 export const useProcessingConfig = (isSetupComplete: boolean) => {
   const [ffmpegArgs, setFfmpegArgs] = useState<string>('');
   const [processingFormat, setProcessingFormat] = useState<string>('vs.YUV420P8');
+  const [outputFormat, setOutputFormat] = useState<string>('mkv');
   const [videoCompareArgs, setVideoCompareArgs] = useState<string>('-W');
 
   // Load configuration on mount
@@ -14,6 +15,9 @@ export const useProcessingConfig = (isSetupComplete: boolean) => {
         
         const formatResult = await window.electronAPI.getProcessingFormat();
         setProcessingFormat(formatResult.format);
+
+        const outputFormatResult = await window.electronAPI.getOutputFormat();
+        setOutputFormat(outputFormatResult.format);
 
         const videoCompareResult = await window.electronAPI.getVideoCompareArgs();
         setVideoCompareArgs(videoCompareResult.args);
@@ -74,13 +78,24 @@ export const useProcessingConfig = (isSetupComplete: boolean) => {
     }
   }, []);
 
+  const handleUpdateOutputFormat = useCallback(async (format: string): Promise<void> => {
+    try {
+      setOutputFormat(format);
+      await window.electronAPI.setOutputFormat(format);
+    } catch (error) {
+      console.error('Error updating output format:', error);
+    }
+  }, []);
+
   return {
     ffmpegArgs,
     processingFormat,
+    outputFormat,
     videoCompareArgs,
     handleUpdateFfmpegArgs,
     handleResetFfmpegArgs,
     handleUpdateProcessingFormat,
+    handleUpdateOutputFormat,
     handleUpdateVideoCompareArgs,
     handleResetVideoCompareArgs
   };
