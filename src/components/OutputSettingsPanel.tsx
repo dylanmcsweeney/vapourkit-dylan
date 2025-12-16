@@ -103,20 +103,6 @@ export function OutputSettingsPanel({
           <Download className="w-4 h-4 text-accent-cyan" />
           <h3 className="text-base font-semibold">Output Settings</h3>
         </div>
-        
-        {/* Advanced Mode Toggle */}
-        <button
-          onClick={() => setAdvancedMode(!advancedMode)}
-          disabled={isProcessing}
-          className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 ${
-            advancedMode
-              ? 'bg-accent-cyan/20 text-accent-cyan border border-accent-cyan/30 hover:bg-accent-cyan/30'
-              : 'bg-dark-surface text-gray-400 border border-gray-700 hover:border-gray-600 hover:text-gray-300'
-          }`}
-        >
-          <Sliders className="w-3.5 h-3.5" />
-          Advanced
-        </button>
       </div>
 
       {/* Always Visible: Format & Save Location */}
@@ -195,16 +181,31 @@ export function OutputSettingsPanel({
 
       {/* Expandable Encoding Settings */}
       {isExpanded && (
-        <div className="px-4 pb-3 space-y-3 border-t border-gray-800 pt-3">
-
+        <div className="px-4 pb-3 border-t border-gray-800 pt-3">
+          <div className="space-y-3">
           {/* Simple Mode */}
           {!advancedMode && (
             <>
             {/* Codec Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                Video Codec
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-sm font-medium text-gray-300">
+                  Video Codec
+                </label>
+                {/* Advanced Mode Toggle */}
+                <button
+                  onClick={() => setAdvancedMode(!advancedMode)}
+                  disabled={isProcessing}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 ${
+                    advancedMode
+                      ? 'bg-accent-cyan/20 text-accent-cyan border border-accent-cyan/30 hover:bg-accent-cyan/30'
+                      : 'bg-dark-surface text-gray-400 border border-gray-700 hover:border-gray-600 hover:text-gray-300'
+                  }`}
+                >
+                  <Sliders className="w-3.5 h-3.5" />
+                  Advanced
+                </button>
+              </div>
               <select
                 value={config.codec === 'custom' ? 'h264' : config.codec}
                 onChange={(e) => handleCodecChange(e.target.value as Codec)}
@@ -335,9 +336,24 @@ export function OutputSettingsPanel({
         {/* Advanced Mode - Raw FFmpeg Args */}
         {advancedMode && (
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1.5">
-              FFmpeg Arguments
-            </label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-sm font-medium text-gray-300">
+                FFmpeg Arguments
+              </label>
+              {/* Advanced Mode Toggle */}
+              <button
+                onClick={() => setAdvancedMode(!advancedMode)}
+                disabled={isProcessing}
+                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 ${
+                  advancedMode
+                    ? 'bg-accent-cyan/20 text-accent-cyan border border-accent-cyan/30 hover:bg-accent-cyan/30'
+                    : 'bg-dark-surface text-gray-400 border border-gray-700 hover:border-gray-600 hover:text-gray-300'
+                }`}
+              >
+                <Sliders className="w-3.5 h-3.5" />
+                Advanced
+              </button>
+            </div>
             <textarea
               value={advancedMode ? ffmpegArgs : generateFfmpegArgs(config)}
               onChange={(e) => handleCustomArgsChange(e.target.value)}
@@ -351,6 +367,7 @@ export function OutputSettingsPanel({
             </p>
           </div>
         )}
+        </div>
       </div>
       )}
     </div>
