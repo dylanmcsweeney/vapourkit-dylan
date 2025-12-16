@@ -98,43 +98,17 @@ export function OutputSettingsPanel({
   return (
     <div className="flex-shrink-0 bg-dark-elevated rounded-xl border border-gray-800">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3">
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          disabled={isProcessing}
-          className="flex items-center gap-2 flex-1 hover:opacity-80 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
-        >
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
+        <div className="flex items-center gap-2">
           <Download className="w-4 h-4 text-accent-cyan" />
           <h3 className="text-base font-semibold">Output Settings</h3>
-          {!advancedMode && !isCustom && (
-            <>
-              <span className="text-sm text-primary-purple bg-primary-purple/10 px-2 py-0.5 rounded">
-                {config.codec.toUpperCase()}
-              </span>
-              {availableEncoders.length > 1 && (
-                <span className="text-xs text-gray-400 bg-gray-800 px-2 py-0.5 rounded">
-                  {getEncoderShortName(config.encoder)}
-                </span>
-              )}
-            </>
-          )}
-          {advancedMode && (
-            <span className="text-sm text-accent-cyan bg-accent-cyan/10 px-2 py-0.5 rounded">
-              Custom
-            </span>
-          )}
-          {isExpanded ? (
-            <ChevronUp className="w-4 h-4 ml-auto" />
-          ) : (
-            <ChevronDown className="w-4 h-4 ml-auto" />
-          )}
-        </button>
+        </div>
         
         {/* Advanced Mode Toggle */}
         <button
           onClick={() => setAdvancedMode(!advancedMode)}
           disabled={isProcessing}
-          className={`ml-2 px-3 py-1.5 text-xs font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 ${
+          className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 ${
             advancedMode
               ? 'bg-accent-cyan/20 text-accent-cyan border border-accent-cyan/30 hover:bg-accent-cyan/30'
               : 'bg-dark-surface text-gray-400 border border-gray-700 hover:border-gray-600 hover:text-gray-300'
@@ -145,42 +119,83 @@ export function OutputSettingsPanel({
         </button>
       </div>
 
-      {/* Content */}
-      {isExpanded && (
-        <div className="px-4 pb-3 space-y-3">
-          {/* Output Format & Save Location Row */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                Format
-              </label>
-              <select
-                value={outputFormat}
-                onChange={(e) => onFormatChange(e.target.value)}
-                disabled={isProcessing}
-                className="w-full bg-dark-surface border border-gray-700 rounded-lg px-3 py-2 focus:outline-none focus:border-accent-cyan transition-colors disabled:opacity-50 text-base disabled:cursor-not-allowed"
-              >
-                <option value="mkv">MKV</option>
-                <option value="mp4">MP4</option>
-                <option value="mov">MOV</option>
-                <option value="avi">AVI</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1.5">Save To</label>
-              <button
-                onClick={onSelectOutputFile}
-                disabled={!videoInfo || isProcessing}
-                className="w-full bg-dark-surface border border-gray-700 rounded-lg px-3 py-2 text-left hover:border-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm truncate"
-              >
-                {outputPath ? (
-                  <span className="truncate block">{outputPath.split('\\').pop()?.split('/').pop() || outputPath}</span>
-                ) : (
-                  <span className="text-gray-500">Browse...</span>
-                )}
-              </button>
-            </div>
+      {/* Always Visible: Format & Save Location */}
+      <div className="px-4 py-3 space-y-3">
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1.5">
+              Format
+            </label>
+            <select
+              value={outputFormat}
+              onChange={(e) => onFormatChange(e.target.value)}
+              disabled={isProcessing}
+              className="w-full bg-dark-surface border border-gray-700 rounded-lg px-3 py-2 focus:outline-none focus:border-accent-cyan transition-colors disabled:opacity-50 text-base disabled:cursor-not-allowed"
+            >
+              <option value="mkv">MKV</option>
+              <option value="mp4">MP4</option>
+              <option value="mov">MOV</option>
+              <option value="avi">AVI</option>
+            </select>
           </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1.5">Save To</label>
+            <button
+              onClick={onSelectOutputFile}
+              disabled={!videoInfo || isProcessing}
+              className="w-full bg-dark-surface border border-gray-700 rounded-lg px-3 py-2 text-left hover:border-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm truncate"
+            >
+              {outputPath ? (
+                <span className="truncate block">{outputPath.split('\\').pop()?.split('/').pop() || outputPath}</span>
+              ) : (
+                <span className="text-gray-500">Browse...</span>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Encoding Settings Expand/Collapse */}
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          disabled={isProcessing}
+          className="w-full flex items-center justify-between px-3 py-2.5 bg-gray-800/30 border border-gray-700/50 rounded-lg hover:bg-gray-800/50 hover:border-accent-cyan/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
+        >
+          <div className="flex items-center gap-2">
+            {isExpanded ? (
+              <ChevronUp className="w-4 h-4 text-accent-cyan group-hover:text-accent-cyan transition-colors" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-accent-cyan transition-colors" />
+            )}
+            <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">
+              Encoding Settings
+            </span>
+            {!advancedMode && !isCustom && (
+              <>
+                <span className="text-xs text-primary-purple bg-primary-purple/10 px-2 py-0.5 rounded">
+                  {config.codec.toUpperCase()}
+                </span>
+                {availableEncoders.length > 1 && (
+                  <span className="text-xs text-gray-400 bg-gray-800 px-2 py-0.5 rounded">
+                    {getEncoderShortName(config.encoder)}
+                  </span>
+                )}
+              </>
+            )}
+            {advancedMode && (
+              <span className="text-xs text-accent-cyan bg-accent-cyan/10 px-2 py-0.5 rounded">
+                Custom
+              </span>
+            )}
+          </div>
+          <span className="text-xs text-gray-500 group-hover:text-gray-400 transition-colors">
+            {isExpanded ? 'Hide' : 'Show'}
+          </span>
+        </button>
+      </div>
+
+      {/* Expandable Encoding Settings */}
+      {isExpanded && (
+        <div className="px-4 pb-3 space-y-3 border-t border-gray-800 pt-3">
 
           {/* Simple Mode */}
           {!advancedMode && (

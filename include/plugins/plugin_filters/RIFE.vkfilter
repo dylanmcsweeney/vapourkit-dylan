@@ -1,0 +1,30 @@
+name = "RIFE"
+code = """
+from vsmlrt import RIFE, RIFEModel, Backend
+import vs_tiletools
+
+# Configuration
+model = RIFEModel.v4_10  # See available models at bottom
+multi = 2                # Frame multiplier (2=double FPS, 3=triple, etc.)
+fp16  = True             # FP16 precision
+
+# Backend (DirectML for AMD/Intel GPUs)
+backend = Backend.ORT_DML(fp16=fp16)
+
+# Pad to multiple of 32 (required by RIFE)
+clip = vs_tiletools.mod(clip, modulus=32, mode="mirror")
+
+# Apply RIFE (scale parameter omitted for v4.7+ compatibility)
+clip = core.resize.Bilinear(clip, format=vs.RGBH if fp16 else vs.RGBS, matrix_in_s="709")
+clip = RIFE(clip, multi=multi, model=model, backend=backend)
+clip = core.resize.Point(clip, format=vs.YUV444P16, matrix_s="709")
+
+# Crop back to original dimensions
+clip = vs_tiletools.crop(clip)
+
+# Available models:
+# v4_0, v4_2, v4_3, v4_4, v4_5, v4_6, v4_7, v4_8, v4_9, v4_10"""
+description = "AI frame interpolation to increase frame rate. Note: For best results, apply scene detection before RIFE."
+
+[metadata]
+createdAt = "2025-12-15T18:25:21.039Z"
