@@ -131,6 +131,7 @@ export interface ElectronAPI {
   saveFilterTemplate: (template: FilterTemplate) => Promise<{ success: boolean; error?: string }>;
   deleteFilterTemplate: (name: string) => Promise<{ success: boolean; error?: string }>;
   readTemplateFile: (filePath: string) => Promise<{ success: boolean; content?: string; error?: string }>;
+  importTemplateFile: (filePath: string) => Promise<{ success: boolean; template?: FilterTemplate; error?: string }>;
   
   // File operations
   fileExists: (filePath: string) => Promise<boolean>;

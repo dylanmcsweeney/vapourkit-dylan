@@ -1,7 +1,8 @@
 import { ipcMain } from 'electron';
 import * as fs from 'fs-extra';
+import * as TOML from '@iarna/toml';
 import { logger } from './logger';
-import { TemplateManager } from './templateManager';
+import { TemplateManager, FilterTemplate } from './templateManager';
 
 /**
  * Registers all filter template-related IPC handlers
@@ -56,6 +57,30 @@ export function registerTemplateHandlers(templateManager: TemplateManager) {
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
       logger.error('Error reading template file:', errorMsg);
+      return { success: false, error: errorMsg };
+    }
+  });
+
+  ipcMain.handle('import-template-file', async (event, filePath: string) => {
+    logger.info(`Importing template file: ${filePath}`);
+    try {
+      const content = await fs.readFile(filePath, 'utf-8');
+      
+      // Parse TOML in the main process (Node.js context)
+      const template = TOML.parse(content) as unknown as FilterTemplate;
+      
+      // Validate required fields
+      if (!template.name || template.code === undefined) {
+        return { 
+          success: false, 
+          error: 'Invalid template format. Must include "name" and "code" fields.' 
+        };
+      }
+      
+      return { success: true, template };
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      logger.error('Error importing template file:', errorMsg);
       return { success: false, error: errorMsg };
     }
   });

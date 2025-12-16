@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
 import { Save, ChevronDown, ChevronUp, Filter, Trash2, Pencil, Upload } from 'lucide-react';
-import * as TOML from '@iarna/toml';
 import type { FilterTemplate } from '../electron.d';
 import { PythonCodeEditor } from './PythonCodeEditor';
 
@@ -67,18 +66,13 @@ export function FilterStepPanel({
       const filePath = await window.electronAPI.selectTemplateFile();
       if (!filePath) return;
 
-      const result = await window.electronAPI.readTemplateFile(filePath);
-      if (!result.success || !result.content) {
-        alert(`Failed to read template file: ${result.error || 'Unknown error'}`);
+      const result = await window.electronAPI.importTemplateFile(filePath);
+      if (!result.success || !result.template) {
+        alert(`Failed to import template: ${result.error || 'Unknown error'}`);
         return;
       }
 
-      const template = TOML.parse(result.content) as unknown as FilterTemplate;
-      
-      if (!template.name || !template.code) {
-        alert('Invalid template format. Must include "name" and "code" fields.');
-        return;
-      }
+      const template = result.template;
       
       // Check if template with this name already exists
       const existingTemplate = templates.find(t => t.name === template.name);

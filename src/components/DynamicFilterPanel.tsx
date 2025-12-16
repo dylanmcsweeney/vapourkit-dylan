@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { GripVertical, X, Plus, ChevronDown, ChevronUp, Save, Trash2, Download, Filter as LucideFilter, Info, Sparkles, ToggleLeft, ToggleRight, Copy, ChevronsDownUp, ChevronsUpDown, Settings } from 'lucide-react';
-import * as TOML from '@iarna/toml';
 import type { Filter, FilterTemplate, ModelFile } from '../electron.d';
 import { getModelDisplayName } from '../utils/modelUtils';
 import { PythonCodeEditor } from './PythonCodeEditor';
@@ -268,18 +267,13 @@ export function DynamicFilterPanel({
       const filePath = await window.electronAPI.selectTemplateFile();
       if (!filePath) return;
 
-      const result = await window.electronAPI.readTemplateFile(filePath);
-      if (!result.success || !result.content) {
-        alert(`Failed to read template file: ${result.error || 'Unknown error'}`);
+      const result = await window.electronAPI.importTemplateFile(filePath);
+      if (!result.success || !result.template) {
+        alert(`Failed to import template: ${result.error || 'Unknown error'}`);
         return;
       }
 
-      const template = TOML.parse(result.content) as unknown as FilterTemplate;
-      
-      if (!template.name || !template.code) {
-        alert('Invalid template format. Must include "name" and "code" fields.');
-        return;
-      }
+      const template = result.template;
       
       if (onSaveTemplate) {
         await onSaveTemplate(template);

@@ -117,6 +117,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   saveFilterTemplate: (template: any) => ipcRenderer.invoke('save-filter-template', template),
   deleteFilterTemplate: (name: string) => ipcRenderer.invoke('delete-filter-template', name),
   readTemplateFile: (filePath: string) => ipcRenderer.invoke('read-template-file', filePath),
+  importTemplateFile: (filePath: string) => ipcRenderer.invoke('import-template-file', filePath),
   
   // File operations
   fileExists: (filePath: string) => ipcRenderer.invoke('file-exists', filePath),
