@@ -3,6 +3,9 @@
 ## 0.12.0
 - Remove simple mode to (ironically) simplify codebase
 - Move encoding settings from Settings panel to the right pane, and add easy toggles for common settings
+- Add RIFE filter for frame interpolation
+- Overhaul vkfilter parsing to be more robust
+- Fix GUI design inconsistencies
 
 ## 0.11.0
 - Change the way file names are handled for models
