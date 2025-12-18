@@ -263,46 +263,38 @@ export function registerConfigHandlers(mainWindow: BrowserWindow | null) {
       sendProgress(5, 'Preparing to download vs-mlrt TensorRT plugin...');
 
       // Define the component to download
-      const urls = [
-        `https://github.com/AmusementClub/vs-mlrt/releases/download/v${VS_MLRT_VERSION}/vsmlrt-windows-x64-tensorrt.v${VS_MLRT_VERSION}.7z.001`,
-        `https://github.com/AmusementClub/vs-mlrt/releases/download/v${VS_MLRT_VERSION}/vsmlrt-windows-x64-tensorrt.v${VS_MLRT_VERSION}.7z.002`
-      ];
-      const archiveNames = [`vsmlrt.7z.001`, `vsmlrt.7z.002`];
-      const archivePaths: string[] = [];
+      const url = `https://github.com/AmusementClub/vs-mlrt/releases/download/v${VS_MLRT_VERSION}/vsmlrt-windows-x64-tensorrt.v${VS_MLRT_VERSION}.7z`;
+      const archiveName = 'vsmlrt.7z';
+      const archivePath = path.join(PATHS.APP_DATA, archiveName);
 
-      // Download all parts
-      for (let i = 0; i < urls.length; i++) {
-        const archivePath = path.join(PATHS.APP_DATA, archiveNames[i]);
-        archivePaths.push(archivePath);
-        
-        logger.info(`Downloading part ${i + 1}/${urls.length}: ${urls[i]}`);
-        sendProgress(10 + (i * 35), `Downloading vs-mlrt plugin (Part ${i + 1}/${urls.length})...`);
+      // Download the archive
+      logger.info(`Downloading: ${url}`);
+      sendProgress(10, 'Downloading vs-mlrt plugin...');
 
-        const response = await axios.default({
-          method: 'get',
-          url: urls[i],
-          responseType: 'stream',
-          timeout: 300000 // 5 minutes
-        });
+      const response = await axios.default({
+        method: 'get',
+        url: url,
+        responseType: 'stream',
+        timeout: 300000 // 5 minutes
+      });
 
-        const writer = fs.createWriteStream(archivePath);
-        const totalLength = parseInt(response.headers['content-length'] || '0', 10);
-        let downloadedLength = 0;
+      const writer = fs.createWriteStream(archivePath);
+      const totalLength = parseInt(response.headers['content-length'] || '0', 10);
+      let downloadedLength = 0;
 
-        response.data.on('data', (chunk: Buffer) => {
-          downloadedLength += chunk.length;
-          const partProgress = totalLength > 0 ? (downloadedLength / totalLength) * 35 : 0;
-          sendProgress(10 + (i * 35) + partProgress, `Downloading Part ${i + 1}/${urls.length}: ${Math.round((downloadedLength / totalLength) * 100)}%`);
-        });
+      response.data.on('data', (chunk: Buffer) => {
+        downloadedLength += chunk.length;
+        const downloadProgress = totalLength > 0 ? (downloadedLength / totalLength) * 70 : 0;
+        sendProgress(10 + downloadProgress, `Downloading: ${Math.round((downloadedLength / totalLength) * 100)}%`);
+      });
 
-        await new Promise<void>((resolve, reject) => {
-          response.data.pipe(writer);
-          writer.on('finish', () => resolve());
-          writer.on('error', reject);
-        });
+      await new Promise<void>((resolve, reject) => {
+        response.data.pipe(writer);
+        writer.on('finish', () => resolve());
+        writer.on('error', reject);
+      });
 
-        logger.info(`Downloaded part ${i + 1} to: ${archivePath}`);
-      }
+      logger.info(`Downloaded to: ${archivePath}`);
 
       sendProgress(80, 'Extracting vs-mlrt plugin...');
       logger.info(`Extracting to: ${PATHS.PLUGINS}`);
@@ -314,9 +306,9 @@ export function registerConfigHandlers(mainWindow: BrowserWindow | null) {
         await fs.remove(mlrtPluginPath);
       }
 
-      // Extract using the first part (7zip will automatically find other parts)
+      // Extract the archive
       await new Promise<void>((resolve, reject) => {
-        (_7z as any).unpack(archivePaths[0], PATHS.PLUGINS, (err: Error) => {
+        (_7z as any).unpack(archivePath, PATHS.PLUGINS, (err: Error) => {
           if (err) {
             logger.error(`Extraction error: ${err.message}`);
             reject(err);
@@ -328,11 +320,9 @@ export function registerConfigHandlers(mainWindow: BrowserWindow | null) {
 
       sendProgress(90, 'Cleaning up temporary files...');
 
-      // Clean up all archive parts
-      for (const archivePath of archivePaths) {
-        await fs.remove(archivePath);
-        logger.info(`Removed archive: ${archivePath}`);
-      }
+      // Clean up archive
+      await fs.remove(archivePath);
+      logger.info(`Removed archive: ${archivePath}`);
 
       // Update the stored version
       await configManager.setVsMlrtVersion(VS_MLRT_VERSION);

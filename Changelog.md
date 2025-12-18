@@ -6,6 +6,7 @@
 - Add RIFE filter for frame interpolation
 - Overhaul vkfilter parsing to be more robust
 - Fix GUI design inconsistencies
+- Reverted to vs-mlrt 15.13 as 15.14 has noticeably lower performance
 
 ## 0.11.0
 - Change the way file names are handled for models

@@ -395,13 +395,9 @@ export class DependencyManager {
       if (hasCuda) {
         logger.dependency('=== CUDA DETECTED - Adding TensorRT plugin ===');
         components.splice(1, 0, {
-          name: 'vs-mlrt TensorRT v15.14',
-          urls: [
-            'https://github.com/AmusementClub/vs-mlrt/releases/download/v15.14/vsmlrt-windows-x64-tensorrt.v15.14.7z.001',
-            'https://github.com/AmusementClub/vs-mlrt/releases/download/v15.14/vsmlrt-windows-x64-tensorrt.v15.14.7z.002'
-          ],
-          archiveName: 'vsmlrt.7z.001',
-          archiveNames: ['vsmlrt.7z.001', 'vsmlrt.7z.002'],
+          name: 'vs-mlrt TensorRT v15.13',
+          url: 'https://github.com/AmusementClub/vs-mlrt/releases/download/v15.13/vsmlrt-windows-x64-tensorrt.v15.13.7z',
+          archiveName: 'vsmlrt.7z',
           checkPath: path.join(PATHS.MLRT_PLUGIN, 'trtexec.exe'),
           extractTo: PATHS.PLUGINS
         });

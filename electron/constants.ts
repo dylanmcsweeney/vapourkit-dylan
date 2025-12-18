@@ -2,7 +2,7 @@ import * as path from 'path';
 import { app } from 'electron';
 
 // Current vs-mlrt TensorRT version - update this when upgrading vs-mlrt
-export const VS_MLRT_VERSION = '15.14';
+export const VS_MLRT_VERSION = '15.13';
 
 // Use portable path relative to the executable location
 // In development: uses the project directory
