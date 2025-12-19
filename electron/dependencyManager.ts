@@ -8,6 +8,7 @@ import { PATHS, VS_MLRT_VERSION } from './constants';
 import { runCommand } from './utils';
 import { FFmpegManager } from './ffmpegManager';
 import { configManager } from './configManager';
+import { VsMlrtManager } from './vsMlrtManager';
 
 // Fix 7zip-bin path for ASAR BEFORE importing 7zip-min
 const sevenBin = require('7zip-bin');
@@ -352,7 +353,7 @@ export class DependencyManager {
       logger.dependency(`=== CUDA DETECTION RESULT: ${hasCuda} ===`);
       logger.dependency(`Will ${hasCuda ? 'DOWNLOAD' : 'SKIP'} TensorRT plugin`);
       
-      // Component configurations
+      // Component configurations (non-vs-mlrt components)
       const components: ComponentConfig[] = [
         {
           name: 'VapourSynth R72',
@@ -360,13 +361,6 @@ export class DependencyManager {
           archiveName: 'vs-portable.zip',
           checkPath: PATHS.VSPIPE,
           extractTo: PATHS.VS
-        },
-        {
-          name: 'vs-mlrt ONNX Runtime v15.13',
-          url: 'https://github.com/AmusementClub/vs-mlrt/releases/download/v15.13/VSORT-Windows-x64.v15.13.7z',
-          archiveName: 'vsort.7z',
-          checkPath: path.join(PATHS.PLUGINS, 'vsort.dll'),
-          extractTo: PATHS.PLUGINS
         },
         {
           name: 'BestSource R13',
@@ -386,28 +380,58 @@ export class DependencyManager {
 
       // Check for vs-mlrt version change before installation
       const storedVsMlrtVersion = configManager.getVsMlrtVersion();
-      if (hasCuda && storedVsMlrtVersion && storedVsMlrtVersion !== VS_MLRT_VERSION) {
+      const hasVsMlrtVersionChange = storedVsMlrtVersion && storedVsMlrtVersion !== VS_MLRT_VERSION;
+      
+      if (hasCuda && hasVsMlrtVersionChange) {
         logger.dependency(`=== vs-mlrt VERSION CHANGE DETECTED: ${storedVsMlrtVersion} → ${VS_MLRT_VERSION} ===`);
         logger.dependency('User will be notified to rebuild TensorRT engines');
       }
 
-      // Add TensorRT component if CUDA is available
-      if (hasCuda) {
-        logger.dependency('=== CUDA DETECTED - Adding TensorRT plugin ===');
-        components.splice(1, 0, {
-          name: 'vs-mlrt TensorRT v15.13',
-          url: 'https://github.com/AmusementClub/vs-mlrt/releases/download/v15.13/vsmlrt-windows-x64-tensorrt.v15.13.7z',
-          archiveName: 'vsmlrt.7z',
-          checkPath: path.join(PATHS.MLRT_PLUGIN, 'trtexec.exe'),
-          extractTo: PATHS.PLUGINS
-        });
-      } else {
-        logger.dependency('=== NO CUDA DETECTED - Skipping TensorRT plugin ===');
-      }
-
-      // Install all components
+      // Install standard components
       for (const component of components) {
         await this.downloadAndInstallComponent(component);
+      }
+
+      // Install vs-mlrt components using the unified manager
+      // ONNX Runtime (always needed)
+      if (!(await VsMlrtManager.isComponentInstalled('onnx-runtime'))) {
+        logger.dependency('Installing vs-mlrt ONNX Runtime');
+        await VsMlrtManager.downloadAndInstall('onnx-runtime', (progress) => {
+          this.sendProgress({
+            type: 'download',
+            component: VsMlrtManager.getComponentName('onnx-runtime'),
+            progress: progress.progress,
+            message: progress.message
+          });
+        });
+      } else {
+        logger.dependency('vs-mlrt ONNX Runtime already installed');
+      }
+
+      // TensorRT (only if CUDA is available)
+      if (hasCuda) {
+        logger.dependency('=== CUDA DETECTED - Installing TensorRT plugin ===');
+        
+        // CRITICAL: Do NOT auto-update TensorRT if version changed and it's already installed
+        // This allows the user to be notified via modal and decide when to update
+        const isTensorRtInstalled = await VsMlrtManager.isComponentInstalled('tensorrt');
+        
+        if (hasVsMlrtVersionChange && isTensorRtInstalled) {
+          logger.dependency('TensorRT already installed with different version - skipping auto-update (user will be notified)');
+        } else if (!isTensorRtInstalled) {
+          await VsMlrtManager.downloadAndInstall('tensorrt', (progress) => {
+            this.sendProgress({
+              type: 'download',
+              component: VsMlrtManager.getComponentName('tensorrt'),
+              progress: progress.progress,
+              message: progress.message
+            });
+          });
+        } else {
+          logger.dependency('vs-mlrt TensorRT already installed');
+        }
+      } else {
+        logger.dependency('=== NO CUDA DETECTED - Skipping TensorRT plugin ===');
       }
 
       // Note: We intentionally do NOT update the stored vs-mlrt version here.

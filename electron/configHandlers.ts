@@ -4,6 +4,7 @@ import * as path from 'path';
 import { logger } from './logger';
 import { configManager } from './configManager';
 import { VS_MLRT_VERSION, PATHS } from './constants';
+import { VsMlrtManager } from './vsMlrtManager';
 
 /**
  * Registers all configuration-related IPC handlers
@@ -246,88 +247,14 @@ export function registerConfigHandlers(mainWindow: BrowserWindow | null) {
         return { success: false, error: 'CUDA not detected. TensorRT plugin requires NVIDIA GPU.' };
       }
 
-      const axios = await import('axios');
-      const sevenBin = require('7zip-bin');
-      if (sevenBin.path7za.includes('app.asar') && !sevenBin.path7za.includes('app.asar.unpacked')) {
-        sevenBin.path7za = sevenBin.path7za.replace('app.asar', 'app.asar.unpacked');
-      }
-      const _7z = await import('7zip-min');
-
-      // Progress reporting helper
-      const sendProgress = (progress: number, message: string) => {
-        if (mainWindow) {
-          mainWindow.webContents.send('vsmlrt-update-progress', { progress, message });
-        }
-      };
-
-      sendProgress(5, 'Preparing to download vs-mlrt TensorRT plugin...');
-
-      // Define the component to download
-      const url = `https://github.com/AmusementClub/vs-mlrt/releases/download/v${VS_MLRT_VERSION}/vsmlrt-windows-x64-tensorrt.v${VS_MLRT_VERSION}.7z`;
-      const archiveName = 'vsmlrt.7z';
-      const archivePath = path.join(PATHS.APP_DATA, archiveName);
-
-      // Download the archive
-      logger.info(`Downloading: ${url}`);
-      sendProgress(10, 'Downloading vs-mlrt plugin...');
-
-      const response = await axios.default({
-        method: 'get',
-        url: url,
-        responseType: 'stream',
-        timeout: 300000 // 5 minutes
-      });
-
-      const writer = fs.createWriteStream(archivePath);
-      const totalLength = parseInt(response.headers['content-length'] || '0', 10);
-      let downloadedLength = 0;
-
-      response.data.on('data', (chunk: Buffer) => {
-        downloadedLength += chunk.length;
-        const downloadProgress = totalLength > 0 ? (downloadedLength / totalLength) * 70 : 0;
-        sendProgress(10 + downloadProgress, `Downloading: ${Math.round((downloadedLength / totalLength) * 100)}%`);
-      });
-
-      await new Promise<void>((resolve, reject) => {
-        response.data.pipe(writer);
-        writer.on('finish', () => resolve());
-        writer.on('error', reject);
-      });
-
-      logger.info(`Downloaded to: ${archivePath}`);
-
-      sendProgress(80, 'Extracting vs-mlrt plugin...');
-      logger.info(`Extracting to: ${PATHS.PLUGINS}`);
-
-      // Remove old plugin files first
-      const mlrtPluginPath = path.join(PATHS.PLUGINS, 'vsmlrt-cuda');
-      if (await fs.pathExists(mlrtPluginPath)) {
-        logger.info('Removing old vs-mlrt plugin directory');
-        await fs.remove(mlrtPluginPath);
-      }
-
-      // Extract the archive
-      await new Promise<void>((resolve, reject) => {
-        (_7z as any).unpack(archivePath, PATHS.PLUGINS, (err: Error) => {
-          if (err) {
-            logger.error(`Extraction error: ${err.message}`);
-            reject(err);
-          } else {
-            resolve();
-          }
-        });
-      });
-
-      sendProgress(90, 'Cleaning up temporary files...');
-
-      // Clean up archive
-      await fs.remove(archivePath);
-      logger.info(`Removed archive: ${archivePath}`);
+      // Use the unified VsMlrtManager to download and install TensorRT
+      await VsMlrtManager.downloadAndInstall(
+        'tensorrt',
+        VsMlrtManager.createWindowProgressCallback(mainWindow, 'vsmlrt-update-progress')
+      );
 
       // Update the stored version
       await configManager.setVsMlrtVersion(VS_MLRT_VERSION);
-      
-      sendProgress(100, 'vs-mlrt plugin updated successfully!');
       logger.info('=== vs-mlrt plugin update completed successfully ===');
 
       return { success: true, version: VS_MLRT_VERSION };

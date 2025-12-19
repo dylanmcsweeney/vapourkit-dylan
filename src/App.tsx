@@ -501,18 +501,12 @@ function App() {
           addConsoleLog(`vs-mlrt version upgrade detected (${versionInfo.engineCount} engine(s) from previous version may need rebuilding)`);
           setVsMlrtVersionInfo(versionInfo);
           setShowVsMlrtModal(true);
-        } else if (versionInfo.hasVersionMismatch && versionInfo.engineCount === 0) {
-          // Version changed but no engines exist - auto-update silently in background
-          addConsoleLog('vs-mlrt version mismatch detected, updating plugin...');
-          const updateResult = await window.electronAPI.updateVsMlrtPlugin();
-          
-          if (updateResult.success) {
-            addConsoleLog(`vs-mlrt plugin updated: ${versionInfo.storedVersion} → ${versionInfo.currentVersion} (no engines to rebuild)`);
-          } else {
-            addConsoleLog(`Failed to update vs-mlrt plugin: ${updateResult.error}`);
-            // Still update the version tracking
-            await window.electronAPI.updateVsMlrtVersion();
-          }
+        } else if (versionInfo.hasVersionMismatch) {
+          // CRITICAL: Version changed - ALWAYS show modal to let user decide when to update
+          // This preserves user control and prevents unexpected plugin replacement
+          addConsoleLog(`vs-mlrt version mismatch detected: ${versionInfo.storedVersion} → ${versionInfo.currentVersion}`);
+          setVsMlrtVersionInfo(versionInfo);
+          setShowVsMlrtModal(true);
         } else if (versionInfo.storedVersion === undefined) {
           // First run or version not tracked yet - store the current version
           await window.electronAPI.updateVsMlrtVersion();
