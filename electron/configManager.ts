@@ -6,7 +6,7 @@ import { logger } from './logger';
 import type { ModelType } from './scriptGenerator';
 
 // Single source of truth for FFmpeg default arguments
-export const DEFAULT_FFMPEG_ARGS = '-c:v libx264 -preset medium -crf 18 -map_metadata 1';
+export const DEFAULT_FFMPEG_ARGS = '-c:v libx264 -preset medium -crf 18 -vf setparams=color_primaries=bt709:color_trc=bt709:colorspace=bt709 -map_metadata 1';
 
 // Single source of truth for video-compare default arguments
 export const DEFAULT_VIDEO_COMPARE_ARGS = '-W';

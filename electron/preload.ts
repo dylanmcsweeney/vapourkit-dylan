@@ -87,6 +87,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getFfmpegArgs: () => ipcRenderer.invoke('get-ffmpeg-args'),
   setFfmpegArgs: (args: string) => ipcRenderer.invoke('set-ffmpeg-args', args),
   getDefaultFfmpegArgs: () => ipcRenderer.invoke('get-default-ffmpeg-args'),
+  getVideoFilter: () => ipcRenderer.invoke('get-video-filter'),
+  setVideoFilter: (filter: string) => ipcRenderer.invoke('set-video-filter', filter),
   
   // Processing format
   getProcessingFormat: () => ipcRenderer.invoke('get-processing-format'),

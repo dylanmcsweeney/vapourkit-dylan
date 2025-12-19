@@ -121,6 +121,7 @@ function hasCustomFlags(args: string): boolean {
     .replace(/-c:v\s+\S+/, '')
     .replace(/-preset\s+\S+/, '')
     .replace(/-crf\s+\d+/, '')
+    .replace(/-vf\s+\S+/, '')
     .replace(/-map_metadata\s+\d+/, '')
     .trim();
   
@@ -154,6 +155,9 @@ export function generateFfmpegArgs(config: FfmpegConfig): string {
   if (config.codec !== 'prores') {
     parts.push(`-crf ${config.crf}`);
   }
+
+  // Add video filter for color parameters
+  parts.push('-vf setparams=color_primaries=bt709:color_trc=bt709:colorspace=bt709');
 
   // Always add metadata mapping
   parts.push('-map_metadata 1');

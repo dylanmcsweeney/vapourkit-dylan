@@ -1,5 +1,5 @@
 // OutputSettingsPanel.tsx
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Download, ChevronDown, ChevronUp, Sliders } from 'lucide-react';
 import type { VideoInfo } from '../electron.d';
 import type { Codec, Preset, Encoder } from '../utils/ffmpegConfig';
@@ -39,17 +39,30 @@ export function OutputSettingsPanel({
 }: OutputSettingsPanelProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [advancedMode, setAdvancedMode] = useState(false);
+  // Store advanced args separately so they persist when toggling modes
+  const [storedAdvancedArgs, setStoredAdvancedArgs] = useState<string>('');
 
-  // Parse current config from args
+  // Parse current config from args (for simple mode display)
   const config = parseFfmpegArgs(ffmpegArgs);
-  const isCustom = config.codec === 'custom';
 
-  // If args are custom, default to advanced mode
-  React.useEffect(() => {
-    if (isCustom && !advancedMode) {
-      setAdvancedMode(true);
+  // When entering advanced mode, store the current args
+  const handleToggleAdvancedMode = () => {
+    if (!advancedMode) {
+      // Entering advanced mode - if we have stored advanced args, restore them
+      // Otherwise, keep the current args as the starting point
+      if (storedAdvancedArgs) {
+        onFfmpegArgsChange(storedAdvancedArgs);
+      } else {
+        setStoredAdvancedArgs(ffmpegArgs);
+      }
+    } else {
+      // Leaving advanced mode - store current advanced args and regenerate simple args
+      setStoredAdvancedArgs(ffmpegArgs);
+      const simpleArgs = generateFfmpegArgs(config);
+      onFfmpegArgsChange(simpleArgs);
     }
-  }, [isCustom, advancedMode]);
+    setAdvancedMode(!advancedMode);
+  };
 
   const handleCodecChange = (codec: Codec) => {
     const crfRange = getRecommendedCrfRange(codec);
@@ -155,10 +168,10 @@ export function OutputSettingsPanel({
             <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">
               Encoding Settings
             </span>
-            {!advancedMode && !isCustom && (
+            {!advancedMode && (
               <>
                 <span className="text-xs text-primary-purple bg-primary-purple/10 px-2 py-0.5 rounded">
-                  {config.codec.toUpperCase()}
+                  {config.codec === 'custom' ? 'H264' : config.codec.toUpperCase()}
                 </span>
                 {availableEncoders.length > 1 && (
                   <span className="text-xs text-gray-400 bg-gray-800 px-2 py-0.5 rounded">
@@ -194,7 +207,7 @@ export function OutputSettingsPanel({
                 </label>
                 {/* Advanced Mode Toggle */}
                 <button
-                  onClick={() => setAdvancedMode(!advancedMode)}
+                  onClick={handleToggleAdvancedMode}
                   disabled={isProcessing}
                   className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 ${
                     advancedMode
@@ -342,7 +355,7 @@ export function OutputSettingsPanel({
               </label>
               {/* Advanced Mode Toggle */}
               <button
-                onClick={() => setAdvancedMode(!advancedMode)}
+                onClick={handleToggleAdvancedMode}
                 disabled={isProcessing}
                 className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 ${
                   advancedMode
@@ -355,10 +368,13 @@ export function OutputSettingsPanel({
               </button>
             </div>
             <textarea
-              value={advancedMode ? ffmpegArgs : generateFfmpegArgs(config)}
-              onChange={(e) => handleCustomArgsChange(e.target.value)}
+              value={ffmpegArgs}
+              onChange={(e) => {
+                handleCustomArgsChange(e.target.value);
+                setStoredAdvancedArgs(e.target.value);
+              }}
               disabled={isProcessing}
-              placeholder="-c:v libx264 -preset medium -crf 18 -map_metadata 1"
+              placeholder="-c:v libx264 -preset medium -crf 18 -vf setparams=color_primaries=bt709:color_trc=bt709:colorspace=bt709 -map_metadata 1"
               rows={3}
               className="w-full bg-dark-surface border border-gray-700 rounded-lg px-3 py-2 focus:outline-none focus:border-accent-cyan transition-colors disabled:opacity-50 text-sm font-mono resize-none"
             />
@@ -367,6 +383,7 @@ export function OutputSettingsPanel({
             </p>
           </div>
         )}
+
         </div>
       </div>
       )}
