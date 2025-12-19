@@ -844,10 +844,12 @@ function App() {
                     outputPath={outputPath}
                     outputFormat={outputFormat}
                     ffmpegArgs={ffmpegArgs}
+                    processingFormat={processingFormat}
                     isProcessing={isProcessing}
                     onFormatChange={handleUpdateOutputFormat}
                     onSelectOutputFile={handleSelectOutputFile}
                     onFfmpegArgsChange={handleUpdateFfmpegArgs}
+                    onProcessingFormatChange={handleUpdateProcessingFormat}
                   />
 
                   {/* Video Info */}
@@ -1022,8 +1024,6 @@ function App() {
         onToggleDirectML={handleToggleDirectML}
         numStreams={numStreams}
         onUpdateNumStreams={updateNumStreams}
-        processingFormat={processingFormat}
-        onUpdateProcessingFormat={handleUpdateProcessingFormat}
         videoCompareArgs={videoCompareArgs}
         onUpdateVideoCompareArgs={handleUpdateVideoCompareArgs}
         onResetVideoCompareArgs={handleResetVideoCompareArgs}

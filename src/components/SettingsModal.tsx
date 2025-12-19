@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, Info, Terminal, FolderOpen, X, Package, FileCode, RotateCcw, Cpu, Layers, Play, ChevronDown, ChevronUp } from 'lucide-react';
+import { Settings, Info, Terminal, FolderOpen, X, Package, FileCode, RotateCcw, Cpu, Play, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface SettingsModalProps {
   show: boolean;
@@ -8,8 +8,6 @@ interface SettingsModalProps {
   onToggleDirectML: (value: boolean) => void;
   numStreams: number;
   onUpdateNumStreams: (value: number) => void;
-  processingFormat: string;
-  onUpdateProcessingFormat: (format: string) => void;
   videoCompareArgs: string;
   onUpdateVideoCompareArgs: (args: string) => void;
   onResetVideoCompareArgs: () => void;
@@ -24,8 +22,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onToggleDirectML,
   numStreams,
   onUpdateNumStreams,
-  processingFormat,
-  onUpdateProcessingFormat,
   videoCompareArgs,
   onUpdateVideoCompareArgs,
   onResetVideoCompareArgs
@@ -261,36 +257,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
           {activeTab === 'processing' && (
             <>
-              {/* VapourSynth Output Format Section */}
-              <div>
-                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                  <Layers className="w-5 h-5 text-primary-purple" />
-                  VapourSynth Output Format
-                </h3>
-                
-                <div className="bg-dark-surface rounded-lg p-4 border border-gray-700">
-                  <label className="block">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-sm font-medium text-white">Output Pixel Format</p>
-                    </div>
-                    <select
-                      value={processingFormat}
-                      onChange={(e) => onUpdateProcessingFormat(e.target.value)}
-                      className="w-full bg-dark-bg border border-gray-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary-purple"
-                    >
-                      <option value="vs.YUV420P8">YUV 4:2:0 8-Bit</option>
-                      <option value="vs.YUV420P10">YUV 4:2:0 10-Bit</option>
-                      <option value="vs.YUV444P8">YUV 4:4:4 8-Bit</option>
-                      <option value="vs.YUV444P10">YUV 4:4:4 10-Bit</option>
-                      <option value="vs.RGB24">RGB 8-Bit</option>
-                      <option value="match_input">Same as Input (experimental)</option>
-                    </select>
-                    <p className="text-xs text-gray-400 mt-2">
-                      YUV is the color family, 4:2:0 the chroma subsampling, and 8-Bit the bit depth. The default video is typically YUV 4:2:0 8-Bit.
-                    </p>
-                  </label>
-                </div>
-              </div>
 
               {/* Video Compare Configuration Section */}
               <div>

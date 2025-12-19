@@ -21,10 +21,12 @@ interface OutputSettingsPanelProps {
   outputPath: string;
   outputFormat: string;
   ffmpegArgs: string;
+  processingFormat: string;
   isProcessing: boolean;
   onFormatChange: (format: string) => void;
   onSelectOutputFile: () => void;
   onFfmpegArgsChange: (args: string) => void;
+  onProcessingFormatChange: (format: string) => void;
 }
 
 export function OutputSettingsPanel({
@@ -32,10 +34,12 @@ export function OutputSettingsPanel({
   outputPath,
   outputFormat,
   ffmpegArgs,
+  processingFormat,
   isProcessing,
   onFormatChange,
   onSelectOutputFile,
   onFfmpegArgsChange,
+  onProcessingFormatChange,
 }: OutputSettingsPanelProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [advancedMode, setAdvancedMode] = useState(false);
@@ -73,6 +77,14 @@ export function OutputSettingsPanel({
     
     // Get appropriate default preset for the encoder
     const preset = getDefaultPreset(encoder);
+    
+    // ProRes only supports YUV422P10 and YUV444P10 - auto-select if current format is incompatible
+    if (codec === 'prores') {
+      const proresCompatibleFormats = ['vs.YUV422P10', 'vs.YUV444P10'];
+      if (!proresCompatibleFormats.includes(processingFormat)) {
+        onProcessingFormatChange('vs.YUV422P10');
+      }
+    }
     
     const newConfig = {
       ...config,
@@ -153,6 +165,7 @@ export function OutputSettingsPanel({
           </div>
         </div>
 
+
         {/* Encoding Settings Expand/Collapse */}
         <button
           onClick={() => setIsExpanded(!isExpanded)}
@@ -229,6 +242,27 @@ export function OutputSettingsPanel({
                 <option value="h265">H.265 (HEVC)</option>
                 <option value="av1">AV1</option>
                 <option value="prores">ProRes</option>
+              </select>
+            </div>
+
+            {/* Pixel Format Selection (moved here) */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1.5">
+                Pixel Format
+              </label>
+              <select
+                value={processingFormat}
+                onChange={(e) => onProcessingFormatChange(e.target.value)}
+                disabled={isProcessing}
+                className="w-full bg-dark-surface border border-gray-700 rounded-lg px-3 py-2 focus:outline-none focus:border-accent-cyan transition-colors disabled:opacity-50 text-base disabled:cursor-not-allowed"
+              >
+                <option value="vs.YUV420P8" disabled={config.codec === 'prores'}>YUV 4:2:0 8-Bit</option>
+                <option value="vs.YUV420P10" disabled={config.codec === 'prores'}>YUV 4:2:0 10-Bit</option>
+                <option value="vs.YUV422P10">YUV 4:2:2 10-Bit</option>
+                <option value="vs.YUV444P8" disabled={config.codec === 'prores'}>YUV 4:4:4 8-Bit</option>
+                <option value="vs.YUV444P10">YUV 4:4:4 10-Bit</option>
+                <option value="vs.RGB24" disabled={config.codec === 'prores'}>RGB 8-Bit</option>
+                <option value="match_input" disabled={config.codec === 'prores'}>Same as Input</option>
               </select>
             </div>
 
