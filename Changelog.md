@@ -7,6 +7,8 @@
 - Overhaul vkfilter parsing to be more robust
 - Fix GUI design inconsistencies
 - Reverted to vs-mlrt 15.13 as 15.14 has noticeably lower performance
+- Update vs_tiletools 
+- Update zsmooth to 0.15
 
 ## 0.11.0
 - Change the way file names are handled for models
