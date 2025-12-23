@@ -35,13 +35,7 @@ For advanced features like custom filters and workflows, see [Advanced Mode](htt
 - **Video Comparison**: Built-in side-by-side viewer
 - **Batch Processing**: Upscale multiple videos sequentially
 
-### Two Modes
-
-#### 🎯 Simple Mode (Default)
-Simple mode is ideal for beginners who just want to upscale/restore a video using an AI model.
-
-#### 🔬 Advanced Mode
-Advanced mode is for power users who need customization:
+### 🔬 Complete Control
 - **Pre-made Filters**: Dozens of ready-to-use filters (thanks [pifroggi](https://github.com/pifroggi/)!)
 - **Custom VapourSynth Filters**: Write and chain custom video processing filters
 - **Templates & Workflows**: Save/share filter configs (`.vkfilter`) and complete workflows (`.vkworkflow`)
@@ -71,9 +65,10 @@ See [Development](docs/Development.md) for more information.
 
 GPL 3.0 - See LICENSE file for details
 
-## 👤 Author
+## Discord
+Chat here about Vapourkit!
 
-Kim2091
+https://discord.gg/HqRbWKyu7c
 
 ## 🙏 Credits
 
