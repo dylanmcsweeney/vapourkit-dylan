@@ -99,6 +99,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setVideoCompareArgs: (args: string) => ipcRenderer.invoke('set-video-compare-args', args),
   getDefaultVideoCompareArgs: () => ipcRenderer.invoke('get-default-video-compare-args'),
 
+  // Encoding settings panel state
+  getEncodingSettingsExpanded: () => ipcRenderer.invoke('get-encoding-settings-expanded'),
+  setEncodingSettingsExpanded: (expanded: boolean) => ipcRenderer.invoke('set-encoding-settings-expanded', expanded),
+
   // Panel sizes
   getPanelSizes: () => ipcRenderer.invoke('get-panel-sizes'),
   setPanelSizes: (sizes: any) => ipcRenderer.invoke('set-panel-sizes', sizes),

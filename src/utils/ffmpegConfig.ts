@@ -2,7 +2,7 @@
 // Utilities for parsing and generating FFmpeg encoding arguments
 
 export type Codec = 'h264' | 'h265' | 'av1' | 'prores' | 'custom';
-export type Preset = 'ultrafast' | 'superfast' | 'veryfast' | 'faster' | 'fast' | 'medium' | 'slow' | 'slower' | 'veryslow' | 'p1' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p7' | 'quality' | 'balanced' | 'speed';
+export type Preset = 'ultrafast' | 'superfast' | 'veryfast' | 'faster' | 'fast' | 'medium' | 'slow' | 'slower' | 'veryslow' | 'p1' | 'p2' | 'p3' | 'p4' | 'p5' | 'p6' | 'p7' | 'quality' | 'balanced' | 'speed' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | '11' | '12';
 export type Encoder = 'software' | 'nvidia' | 'amd' | 'intel';
 
 export interface FfmpegConfig {
@@ -83,8 +83,8 @@ export function parseFfmpegArgs(args: string): FfmpegConfig {
     encoder = ENCODER_MAPPINGS[codecValue] || 'software';
   }
 
-  // Set default preset based on encoder
-  preset = getDefaultPreset(encoder);
+  // Set default preset based on encoder and codec
+  preset = getDefaultPreset(encoder, codec);
 
   // Parse preset
   const presetMatch = args.match(/-preset\s+(\S+)/);
@@ -205,16 +205,26 @@ export function getAvailablePresets(codec: Codec, encoder: Encoder): Preset[] {
     return ['veryfast', 'faster', 'fast', 'medium', 'slow', 'slower', 'veryslow'];
   }
   
-  // Software encoders (x264, x265, svt-av1) use standard presets
+  // SVT-AV1 uses numeric presets 0-12 (0=slowest/best, 12=fastest)
+  // Preset 13 is only for debugging, so we exclude it
+  if (codec === 'av1') {
+    return ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
+  }
+  
+  // Software encoders (x264, x265) use standard presets
   return ['ultrafast', 'superfast', 'veryfast', 'faster', 'fast', 'medium', 'slow', 'slower', 'veryslow'];
 }
 
 /**
  * Get default preset for an encoder
  */
-export function getDefaultPreset(encoder: Encoder): Preset {
+export function getDefaultPreset(encoder: Encoder, codec?: Codec): Preset {
   if (encoder === 'software') {
-    // Software encoder: use medium for balanced speed/quality
+    // SVT-AV1 uses numeric presets, default to 8 (balanced speed/quality)
+    if (codec === 'av1') {
+      return '8';
+    }
+    // x264/x265: use medium for balanced speed/quality
     return 'medium';
   }
   
@@ -243,6 +253,16 @@ export function getPresetDisplayName(preset: Preset): string {
     const level = parseInt(preset.substring(1));
     if (level <= 2) return 'Fastest';
     if (level <= 4) return 'Balanced';
+    return 'Best Quality';
+  }
+  
+  // SVT-AV1 numeric presets (0=slowest/best, 12=fastest)
+  const numericPreset = parseInt(preset);
+  if (!isNaN(numericPreset) && numericPreset >= 0 && numericPreset <= 12) {
+    if (numericPreset >= 10) return 'Fastest';
+    if (numericPreset >= 7) return 'Fast Encode';
+    if (numericPreset >= 5) return 'Balanced';
+    if (numericPreset >= 3) return 'Slow Encode';
     return 'Best Quality';
   }
   

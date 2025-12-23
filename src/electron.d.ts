@@ -110,6 +110,11 @@ export interface ElectronAPI {
   setVideoCompareArgs: (args: string) => Promise<{ success: boolean }>;
   getDefaultVideoCompareArgs: () => Promise<{ args: string }>;
 
+  // Encoding settings panel state
+  getEncodingSettingsExpanded: () => Promise<{ expanded: boolean }>;
+  setEncodingSettingsExpanded: (expanded: boolean) => Promise<{ success: boolean }>;
+  getDefaultVideoCompareArgs: () => Promise<{ args: string }>;
+
   // Panel sizes
   getPanelSizes: () => Promise<{ leftPanel: number; rightPanel: number; queuePanel?: number }>;
   setPanelSizes: (sizes: { leftPanel: number; rightPanel: number; queuePanel?: number }) => Promise<{ success: boolean }>;

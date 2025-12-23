@@ -43,6 +43,7 @@ interface AppConfig {
   processingFormat?: string;
   outputFormat?: string;
   videoCompareArgs?: string;
+  encodingSettingsExpanded?: boolean;
   vsMlrtVersion?: string;
   models: {
     [modelName: string]: {
@@ -82,6 +83,7 @@ const DEFAULT_CONFIG: AppConfig = {
   processingFormat: 'vs.YUV420P8',
   outputFormat: 'mkv',
   videoCompareArgs: DEFAULT_VIDEO_COMPARE_ARGS,
+  encodingSettingsExpanded: false,
   vsMlrtVersion: undefined,
   models: {}
 };
@@ -239,11 +241,15 @@ export class ConfigManager {
   }
 
   getProcessingFormat(): string {
-    return this.config.processingFormat ?? 'vs.YUV420P8';
+    const format = this.config.processingFormat ?? 'vs.YUV420P8';
+    // Never return match_input as it's experimental - fallback to YUV420P8
+    return format === 'match_input' ? 'vs.YUV420P8' : format;
   }
 
   async setProcessingFormat(format: string): Promise<void> {
-    this.config.processingFormat = format;
+    // Prevent saving match_input as it's experimental and can cause issues
+    // Default to YUV420P8 if match_input is passed
+    this.config.processingFormat = format === 'match_input' ? 'vs.YUV420P8' : format;
     await this.save();
   }
 
@@ -271,6 +277,15 @@ export class ConfigManager {
 
   getDefaultVideoCompareArgs(): string {
     return DEFAULT_VIDEO_COMPARE_ARGS;
+  }
+
+  getEncodingSettingsExpanded(): boolean {
+    return this.config.encodingSettingsExpanded ?? false;
+  }
+
+  async setEncodingSettingsExpanded(expanded: boolean): Promise<void> {
+    this.config.encodingSettingsExpanded = expanded;
+    await this.save();
   }
 
   getVsMlrtVersion(): string | undefined {

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.12.1
+- Overhaul validation method. It will no longer automatically run in the background, instead you must manually run it if desired
+- Fix issue where "Same as Input" was the default for fresh installs of Vapourkit
+- Fix broken AV1 presets
+
 ## 0.12.0
 - Remove simple mode to (ironically) simplify codebase
 - Move encoding settings from Settings panel to the right pane, and add easy toggles for common settings

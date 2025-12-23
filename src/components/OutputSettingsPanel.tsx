@@ -1,5 +1,5 @@
 // OutputSettingsPanel.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Download, ChevronDown, ChevronUp, Sliders } from 'lucide-react';
 import type { VideoInfo } from '../electron.d';
 import type { Codec, Preset, Encoder } from '../utils/ffmpegConfig';
@@ -46,6 +46,30 @@ export function OutputSettingsPanel({
   // Store advanced args separately so they persist when toggling modes
   const [storedAdvancedArgs, setStoredAdvancedArgs] = useState<string>('');
 
+  // Load persisted expanded state on mount
+  useEffect(() => {
+    const loadExpandedState = async () => {
+      try {
+        const result = await window.electronAPI.getEncodingSettingsExpanded();
+        setIsExpanded(result.expanded);
+      } catch (error) {
+        console.error('Failed to load encoding settings expanded state:', error);
+      }
+    };
+    loadExpandedState();
+  }, []);
+
+  // Persist expanded state when it changes
+  const handleToggleExpanded = async () => {
+    const newExpanded = !isExpanded;
+    setIsExpanded(newExpanded);
+    try {
+      await window.electronAPI.setEncodingSettingsExpanded(newExpanded);
+    } catch (error) {
+      console.error('Failed to save encoding settings expanded state:', error);
+    }
+  };
+
   // Parse current config from args (for simple mode display)
   const config = parseFfmpegArgs(ffmpegArgs);
 
@@ -75,8 +99,8 @@ export function OutputSettingsPanel({
     // Preserve current encoder if it's available for the new codec, otherwise fall back to software
     const encoder = availableEncodersForCodec.includes(config.encoder) ? config.encoder : 'software' as Encoder;
     
-    // Get appropriate default preset for the encoder
-    const preset = getDefaultPreset(encoder);
+    // Get appropriate default preset for the encoder and codec
+    const preset = getDefaultPreset(encoder, codec);
     
     // ProRes only supports YUV422P10 and YUV444P10 - auto-select if current format is incompatible
     if (codec === 'prores') {
@@ -98,7 +122,7 @@ export function OutputSettingsPanel({
 
   const handleEncoderChange = (encoder: Encoder) => {
     // Update preset to match encoder's defaults
-    const preset = getDefaultPreset(encoder);
+    const preset = getDefaultPreset(encoder, config.codec);
     const newConfig = { ...config, encoder, preset };
     onFfmpegArgsChange(generateFfmpegArgs(newConfig));
   };
@@ -168,7 +192,7 @@ export function OutputSettingsPanel({
 
         {/* Encoding Settings Expand/Collapse */}
         <button
-          onClick={() => setIsExpanded(!isExpanded)}
+          onClick={handleToggleExpanded}
           disabled={isProcessing}
           className="w-full flex items-center justify-between px-3 py-2.5 bg-gray-800/30 border border-gray-700/50 rounded-lg hover:bg-gray-800/50 hover:border-accent-cyan/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
         >
@@ -262,7 +286,7 @@ export function OutputSettingsPanel({
                 <option value="vs.YUV444P8" disabled={config.codec === 'prores'}>YUV 4:4:4 8-Bit</option>
                 <option value="vs.YUV444P10">YUV 4:4:4 10-Bit</option>
                 <option value="vs.RGB24" disabled={config.codec === 'prores'}>RGB 8-Bit</option>
-                <option value="match_input" disabled={config.codec === 'prores'}>Same as Input</option>
+                <option value="match_input" disabled={config.codec === 'prores'}>Same as Input (Not Recommended)</option>
               </select>
             </div>
 
@@ -333,7 +357,7 @@ export function OutputSettingsPanel({
                       <option value="veryslow">Very Slow (Recommended)</option>
                     </>
                   )}
-                  {config.encoder === 'software' && (
+                  {config.encoder === 'software' && config.codec !== 'av1' && (
                     <>
                       <option value="ultrafast">Ultra Fast</option>
                       <option value="superfast">Super Fast</option>
@@ -344,6 +368,23 @@ export function OutputSettingsPanel({
                       <option value="slow">Slow</option>
                       <option value="slower">Slower</option>
                       <option value="veryslow">Very Slow</option>
+                    </>
+                  )}
+                  {config.encoder === 'software' && config.codec === 'av1' && (
+                    <>
+                      <option value="12">12 - Fastest</option>
+                      <option value="11">11</option>
+                      <option value="10">10</option>
+                      <option value="9">9</option>
+                      <option value="8">8 - Balanced (Recommended)</option>
+                      <option value="7">7</option>
+                      <option value="6">6</option>
+                      <option value="5">5</option>
+                      <option value="4">4</option>
+                      <option value="3">3</option>
+                      <option value="2">2</option>
+                      <option value="1">1</option>
+                      <option value="0">0 - Slowest (Best Quality)</option>
                     </>
                   )}
                 </select>

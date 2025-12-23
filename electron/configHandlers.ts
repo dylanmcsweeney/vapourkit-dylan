@@ -125,6 +125,16 @@ export function registerConfigHandlers(mainWindow: BrowserWindow | null) {
     return { args };
   });
 
+  ipcMain.handle('get-encoding-settings-expanded', async () => {
+    const expanded = configManager.getEncodingSettingsExpanded();
+    return { expanded };
+  });
+
+  ipcMain.handle('set-encoding-settings-expanded', async (event, expanded: boolean) => {
+    await configManager.setEncodingSettingsExpanded(expanded);
+    return { success: true };
+  });
+
   ipcMain.handle('get-version', async () => {
     return { version: app.getVersion() };
   });
