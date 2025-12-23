@@ -1,7 +1,7 @@
 // src/App.tsx - Refactored with extracted components and hooks
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Sparkles, XCircle, ChevronDown, ChevronUp, Terminal, Loader2 } from 'lucide-react';
+import { Sparkles, XCircle, ChevronDown, ChevronUp, Terminal, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { ImportModelModal } from './components/ImportModelModal';
 import { AboutModal } from './components/AboutModal';
@@ -426,8 +426,8 @@ function App() {
     queueActions.setShowQueue(newShowQueue);
   };
   
-  // Output resolution calculation hook
-  useOutputResolution({
+  // Output resolution validation hook (manual trigger only)
+  const { isValidating, validationStatus, validationError, validateWorkflow, clearValidationStatus } = useOutputResolution({
     videoInfo,
     selectedModel: selectedModel || '',
     useDirectML,
@@ -435,7 +435,13 @@ function App() {
     numStreams,
     onLog: addConsoleLog,
     onUpdateVideoInfo: setVideoInfo,
+    onError: (message) => alert(`Workflow Validation Error:\n\n${message}`),
   });
+
+  // Clear validation status when workflow changes
+  useEffect(() => {
+    clearValidationStatus();
+  }, [filters, selectedModel, useDirectML, numStreams, clearValidationStatus]);
 
   // Reset segment selection when video changes (but not when loading a queue item)
   useEffect(() => {
@@ -884,7 +890,7 @@ function App() {
                   })()}
 
                   {/* Action Buttons */}
-                  <div className="flex-shrink-0 flex gap-2">
+                  <div className="flex-shrink-0 flex gap-2 relative">
                     {/* Force Stop Button - Only visible when stuck */}
                     {!isProcessing && upscaleProgress && upscaleProgress.type === 'progress' && (
                       <button
@@ -895,6 +901,44 @@ function App() {
                         <XCircle className="w-5 h-5" />
                       </button>
                     )}
+
+                    {/* Validate Workflow Button */}
+                    <button
+                      onClick={validateWorkflow}
+                      disabled={!videoInfo || isValidating || isProcessing}
+                      className={`font-semibold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 ${
+                        isValidating
+                          ? 'bg-blue-600 cursor-wait text-white'
+                          : validationStatus === 'success'
+                          ? 'bg-green-600 hover:bg-green-700 text-white border border-green-500'
+                          : validationStatus === 'error'
+                          ? 'bg-red-600 hover:bg-red-700 text-white border border-red-500'
+                          : 'bg-dark-surface hover:bg-dark-bg border border-gray-700 hover:border-primary-blue disabled:border-gray-800 disabled:text-gray-600 disabled:cursor-not-allowed'
+                      }`}
+                      title={validationStatus === 'error' && validationError ? `Error: ${validationError}` : 'Validate the current workflow by testing script generation'}
+                    >
+                      {isValidating ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Validating...
+                        </>
+                      ) : validationStatus === 'success' ? (
+                        <>
+                          <CheckCircle className="w-5 h-5" />
+                          Valid
+                        </>
+                      ) : validationStatus === 'error' ? (
+                        <>
+                          <AlertCircle className="w-5 h-5" />
+                          Failed
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="w-5 h-5" />
+                          Validate
+                        </>
+                      )}
+                    </button>
 
                     {queueState.showQueue ? (
                       <button

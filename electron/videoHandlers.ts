@@ -131,6 +131,13 @@ export function registerVideoHandlers(
       const info = await infoExecutor.getOutputInfo(scriptPath);
       infoExecutor = null;
       
+      // Check if vspipe returned an error
+      if (info.error) {
+        await scriptGenerator.cleanupScript(scriptPath);
+        logger.error('Workflow validation error:', info.error);
+        return { resolution: null, fps: null, error: info.error };
+      }
+      
       // Get codec from settings
       const ffmpegConfig = await FFmpegSettingsManager.loadFFmpegConfig(configManager);
       // Infer codec from videoArgs or default
@@ -155,8 +162,9 @@ export function registerVideoHandlers(
       };
     } catch (error) {
       infoExecutor = null;
-      logger.error('Error getting output info:', error);
-      return { resolution: null, fps: null };
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      logger.error('Error getting output info:', errorMsg);
+      return { resolution: null, fps: null, error: errorMsg };
     }
   });
 

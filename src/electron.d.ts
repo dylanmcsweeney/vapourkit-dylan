@@ -27,6 +27,7 @@ export interface ElectronAPI {
     pixelFormat?: string | null;
     codec?: string;
     scanType?: string;
+    error?: string;
   }>;
   getFilePathFromFile: (file: File) => string;
   

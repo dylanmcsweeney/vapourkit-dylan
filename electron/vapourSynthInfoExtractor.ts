@@ -9,6 +9,7 @@ export interface OutputInfo {
   fps: number | null;
   fpsString: string | null;
   pixelFormat?: string | null;
+  error?: string | null;
 }
 
 // Default timeout for vspipe info commands (30 seconds)
@@ -172,7 +173,7 @@ export class VapourSynthInfoExtractor {
       const timeout = setTimeout(() => {
         logger.warn(`vspipe info timed out after ${VSPIPE_INFO_TIMEOUT_MS}ms, force killing`);
         forceKillProcess(vspipe);
-        resolve({ resolution: null, fps: null, fpsString: null, pixelFormat: null });
+        resolve({ resolution: null, fps: null, fpsString: null, pixelFormat: null, error: `Workflow validation timed out after ${VSPIPE_INFO_TIMEOUT_MS / 1000} seconds` });
       }, VSPIPE_INFO_TIMEOUT_MS);
 
       let output = '';
@@ -240,18 +241,18 @@ export class VapourSynthInfoExtractor {
           
           resolve({ resolution, fps, fpsString, pixelFormat });
         } else {
-          const actualError = ErrorMessageHandler.extractErrorMessage(stderrOutput);
           logger.error(`vspipe info failed with code ${code}`);
-          logger.error(`Error: ${actualError}`);
           logger.error(`Full output: ${output}`);
-          resolve({ resolution: null, fps: null, fpsString: null, pixelFormat: null });
+          // Return the full output for validation errors so user can see the complete traceback
+          const fullError = output.trim() || stderrOutput.trim() || 'Unknown error';
+          resolve({ resolution: null, fps: null, fpsString: null, pixelFormat: null, error: fullError });
         }
       });
 
       vspipe.on('error', (error) => {
         clearTimeout(timeout);
         logger.error('vspipe info error:', error);
-        resolve({ resolution: null, fps: null, fpsString: null, pixelFormat: null });
+        resolve({ resolution: null, fps: null, fpsString: null, pixelFormat: null, error: error.message });
       });
     });
   }
