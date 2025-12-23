@@ -40,7 +40,7 @@ export class ModelValidator {
         const ort = require('onnxruntime-node');
         
         // Set logger severity to verbose
-        ort.env.logLevel = 'verbose';
+        // ort.env.logLevel = 'verbose';
         
         logger.model('Loading model with ONNX Runtime...');
         const session = await ort.InferenceSession.create(onnxPath);
