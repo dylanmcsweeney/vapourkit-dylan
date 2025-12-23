@@ -1,6 +1,3 @@
-#### Enabling Advanced Mode
-Click the Code icon (`<>`) in the top-left corner to toggle Advanced Mode.
-
 #### Using Custom Filters
 
 1. **Add Filter**: Click "+ Add Filter" in the filter panel
