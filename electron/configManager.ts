@@ -33,10 +33,6 @@ interface AppConfig {
     queuePanel?: number;
   };
   showQueue?: boolean;
-  filterPresets?: {
-    prefilterPreset: string;
-    postfilterPreset: string;
-  };
   filterConfigurations?: Filter[];
   upscalePosition?: number;
   ffmpegArgs?: string;
@@ -73,10 +69,6 @@ const DEFAULT_CONFIG: AppConfig = {
     queuePanel: 25
   },
   showQueue: false,
-  filterPresets: {
-    prefilterPreset: '',
-    postfilterPreset: ''
-  },
   filterConfigurations: [],
   upscalePosition: 0,
   ffmpegArgs: DEFAULT_FFMPEG_ARGS,
@@ -201,15 +193,6 @@ export class ConfigManager {
 
   async setShowQueue(show: boolean): Promise<void> {
     this.config.showQueue = show;
-    await this.save();
-  }
-
-  getFilterPresets(): { prefilterPreset: string; postfilterPreset: string } {
-    return this.config.filterPresets || DEFAULT_CONFIG.filterPresets!;
-  }
-
-  async setFilterPresets(presets: { prefilterPreset: string; postfilterPreset: string }): Promise<void> {
-    this.config.filterPresets = presets;
     await this.save();
   }
 

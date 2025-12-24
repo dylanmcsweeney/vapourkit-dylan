@@ -123,9 +123,7 @@ export interface ElectronAPI {
   getShowQueue: () => Promise<{ show: boolean }>;
   setShowQueue: (show: boolean) => Promise<{ success: boolean }>;
   
-  // Filter presets
-  getFilterPresets: () => Promise<{ prefilterPreset: string; postfilterPreset: string }>;
-  setFilterPresets: (presets: { prefilterPreset: string; postfilterPreset: string }) => Promise<{ success: boolean }>;
+  // Filter configurations
   getFilterConfigurations: () => Promise<Filter[]>;
   setFilterConfigurations: (filters: Filter[]) => Promise<{ success: boolean }>;
   

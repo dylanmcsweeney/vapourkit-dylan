@@ -164,7 +164,7 @@ export function registerModelHandlers(mainWindow: BrowserWindow | null) {
         sendProgress('converting', 0, 'Starting TensorRT engine conversion...');
         
         // Add precision suffix to model name
-        const precisionSuffix = params.useFp32 ? '_fp32' : '_fp16';
+        const precisionSuffix = params.useFp32 ? '_fp32' : params.useBf16 ? '_bf16' : '_fp16';
         const modelNameWithPrecision = `${params.modelName}${precisionSuffix}`;
         const enginePath = path.join(PATHS.MODELS, `${modelNameWithPrecision}.engine`);
         
@@ -292,16 +292,16 @@ export function registerModelHandlers(mainWindow: BrowserWindow | null) {
         sendModelImportProgress(mainWindow, 'copying', 30, 'Copying ONNX model to models directory...');
         await fs.ensureDir(PATHS.MODELS);
         
-        // Add precision suffix to model name only if it doesn't already have fp16/fp32
+        // Add precision suffix to model name only if it doesn't already have fp16/fp32/bf16
         const modelNameLower = params.modelName.toLowerCase();
-        const hasPrecisionSuffix = modelNameLower.includes('fp16') || modelNameLower.includes('fp32');
+        const hasPrecisionSuffix = modelNameLower.includes('fp16') || modelNameLower.includes('fp32') || modelNameLower.includes('bf16');
         
         let modelNameWithPrecision: string;
         if (hasPrecisionSuffix) {
           modelNameWithPrecision = params.modelName;
           logger.model('Model name already contains precision suffix, using as-is');
         } else {
-          const precisionSuffix = params.useFp32 ? '_fp32' : '_fp16';
+          const precisionSuffix = params.useFp32 ? '_fp32' : params.useBf16 ? '_bf16' : '_fp16';
           modelNameWithPrecision = `${params.modelName}${precisionSuffix}`;
           logger.model(`Added precision suffix: ${precisionSuffix}`);
         }

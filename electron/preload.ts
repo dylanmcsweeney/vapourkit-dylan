@@ -111,10 +111,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getShowQueue: () => ipcRenderer.invoke('get-show-queue'),
   setShowQueue: (show: boolean) => ipcRenderer.invoke('set-show-queue', show),
   
-  // Filter presets
-  getFilterPresets: () => ipcRenderer.invoke('get-filter-presets'),
-  setFilterPresets: (presets: any) => ipcRenderer.invoke('set-filter-presets', presets),
-  
   // Backend operations
   reloadBackend: () => ipcRenderer.invoke('reload-backend'),
   

@@ -49,17 +49,6 @@ export function registerConfigHandlers(mainWindow: BrowserWindow | null) {
     return { success: true };
   });
 
-  ipcMain.handle('get-filter-presets', async () => {
-    const presets = configManager.getFilterPresets();
-    return presets;
-  });
-
-  ipcMain.handle('set-filter-presets', async (event, presets: { prefilterPreset: string; postfilterPreset: string }) => {
-    logger.debug(`Setting filter presets: prefilter=${presets.prefilterPreset}, postfilter=${presets.postfilterPreset}`);
-    await configManager.setFilterPresets(presets);
-    return { success: true };
-  });
-
   ipcMain.handle('get-filter-configurations', async () => {
     const filters = configManager.getFilterConfigurations();
     return filters;
