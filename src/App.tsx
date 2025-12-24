@@ -438,10 +438,10 @@ function App() {
     onError: (message) => alert(`Workflow Validation Error:\n\n${message}`),
   });
 
-  // Clear validation status when workflow changes
+  // Clear validation status when workflow or loaded video changes
   useEffect(() => {
     clearValidationStatus();
-  }, [filters, selectedModel, useDirectML, numStreams, clearValidationStatus]);
+  }, [filters, selectedModel, useDirectML, numStreams, videoInfo?.path, clearValidationStatus]);
 
   // Reset segment selection when video changes (but not when loading a queue item)
   useEffect(() => {
@@ -902,43 +902,45 @@ function App() {
                       </button>
                     )}
 
-                    {/* Validate Workflow Button */}
-                    <button
-                      onClick={validateWorkflow}
-                      disabled={!videoInfo || isValidating || isProcessing}
-                      className={`font-semibold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 ${
-                        isValidating
-                          ? 'bg-blue-600 cursor-wait text-white'
-                          : validationStatus === 'success'
-                          ? 'bg-green-600 hover:bg-green-700 text-white border border-green-500'
-                          : validationStatus === 'error'
-                          ? 'bg-red-600 hover:bg-red-700 text-white border border-red-500'
-                          : 'bg-dark-surface hover:bg-dark-bg border border-gray-700 hover:border-primary-blue disabled:border-gray-800 disabled:text-gray-600 disabled:cursor-not-allowed'
-                      }`}
-                      title={validationStatus === 'error' && validationError ? `Error: ${validationError}` : 'Validate the current workflow by testing script generation'}
-                    >
-                      {isValidating ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          Validating...
-                        </>
-                      ) : validationStatus === 'success' ? (
-                        <>
-                          <CheckCircle className="w-5 h-5" />
-                          Valid
-                        </>
-                      ) : validationStatus === 'error' ? (
-                        <>
-                          <AlertCircle className="w-5 h-5" />
-                          Failed
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle className="w-5 h-5" />
-                          Validate
-                        </>
-                      )}
-                    </button>
+                    {/* Validate Workflow Button - hidden during processing */}
+                    {!isProcessing && (
+                      <button
+                        onClick={validateWorkflow}
+                        disabled={!videoInfo || isValidating}
+                        className={`font-semibold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 ${
+                          isValidating
+                            ? 'bg-blue-600 cursor-wait text-white'
+                            : validationStatus === 'success'
+                            ? 'bg-green-600 hover:bg-green-700 text-white border border-green-500'
+                            : validationStatus === 'error'
+                            ? 'bg-red-600 hover:bg-red-700 text-white border border-red-500'
+                            : 'bg-dark-surface hover:bg-dark-bg border border-gray-700 hover:border-primary-blue disabled:border-gray-800 disabled:text-gray-600 disabled:cursor-not-allowed'
+                        }`}
+                        title={validationStatus === 'error' && validationError ? `Error: ${validationError}` : 'Validate the current workflow by testing script generation'}
+                      >
+                        {isValidating ? (
+                          <>
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                            Validating...
+                          </>
+                        ) : validationStatus === 'success' ? (
+                          <>
+                            <CheckCircle className="w-5 h-5" />
+                            Valid
+                          </>
+                        ) : validationStatus === 'error' ? (
+                          <>
+                            <AlertCircle className="w-5 h-5" />
+                            Failed
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="w-5 h-5" />
+                            Validate
+                          </>
+                        )}
+                      </button>
+                    )}
 
                     {queueState.showQueue ? (
                       <button
