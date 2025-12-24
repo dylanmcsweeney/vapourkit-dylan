@@ -88,9 +88,9 @@ export interface ElectronAPI {
   // Console logs
   onDevConsoleLog: (callback: (log: DevConsoleLog) => void) => () => void;
   
-  // Color matrix settings
-  getColorMatrixSettings: () => Promise<ColorMatrixSettings>;
-  setColorMatrixSettings: (settings: ColorMatrixSettings) => Promise<{ success: boolean }>;
+  // Colorimetry settings
+  getColorimetrySettings: () => Promise<ColorimetrySettings>;
+  setColorimetrySettings: (settings: ColorimetrySettings) => Promise<{ success: boolean }>;
   
   // FFmpeg configuration
   getFfmpegArgs: () => Promise<{ args: string }>;
@@ -342,7 +342,7 @@ export interface SegmentSelection {
   endFrame: number; // -1 means end of video
 }
 
-export interface ColorMatrixSettings {
+export interface ColorimetrySettings {
   overwriteMatrix: boolean;
   matrix709: boolean;
   defaultMatrix: '709' | '170m';

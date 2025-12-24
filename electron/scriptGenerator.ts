@@ -35,7 +35,7 @@ export interface ScriptConfig {
   useFp32?: boolean;
   modelType?: ModelType;
   upscalingEnabled?: boolean;
-  colorMatrix?: {
+  colorimetry?: {
     overwriteMatrix: boolean;
     matrix709: boolean;
     defaultMatrix: '709' | '170m';
@@ -59,12 +59,12 @@ export class VapourSynthScriptGenerator {
     const templatePath = this.getTemplatePath();
     let template = await fs.readFile(templatePath, 'utf-8');
 
-    // Apply color matrix settings
-    const overwriteMatrix = config.colorMatrix?.overwriteMatrix ? 'True' : 'False';
-    const matrix709 = config.colorMatrix?.matrix709 ? 'True' : 'False';
-    const defaultMatrix = config.colorMatrix?.defaultMatrix || '709';
-    const defaultPrimaries = config.colorMatrix?.defaultPrimaries || '709';
-    const defaultTransfer = config.colorMatrix?.defaultTransfer || '709';
+    // Apply colorimetry settings
+    const overwriteMatrix = config.colorimetry?.overwriteMatrix ? 'True' : 'False';
+    const matrix709 = config.colorimetry?.matrix709 ? 'True' : 'False';
+    const defaultMatrix = config.colorimetry?.defaultMatrix || '709';
+    const defaultPrimaries = config.colorimetry?.defaultPrimaries || '709';
+    const defaultTransfer = config.colorimetry?.defaultTransfer || '709';
     const outputFormat = config.outputFormat || 'vs.YUV420P8';
 
     // Process filters sequentially

@@ -26,7 +26,7 @@ import { useSetup } from './hooks/useSetup';
 import { useVideoProcessing } from './hooks/useVideoProcessing';
 import { usePanelLayout } from './hooks/usePanelLayout';
 import { useOutputResolution } from './hooks/useOutputResolution';
-import { useColorMatrix } from './hooks/useColorMatrix';
+import { useColorimetry } from './hooks/useColorimetry';
 import { useFilterConfig } from './hooks/useFilterConfig';
 import { useUIState } from './hooks/useUIState';
 import { useBackendOperations } from './hooks/useBackendOperations';
@@ -80,7 +80,7 @@ function App() {
   
   // State management hooks
   const { filters, handleSetFilters } = useFilterConfig(isSetupComplete, addConsoleLog);
-  const { colorMatrixSettings, handleColorMatrixChange } = useColorMatrix(isSetupComplete, addConsoleLog);
+  const { colorimetrySettings, handleColorimetryChange } = useColorimetry(isSetupComplete, addConsoleLog);
   const { panelSizes, panelSizesLoaded, handlePanelResize } = usePanelLayout(isSetupComplete, addConsoleLog);
   const {
     showConsole,
@@ -826,7 +826,7 @@ function App() {
                     filteredModels={filteredModels}
                     isProcessing={isProcessing}
                     useDirectML={useDirectML}
-                    colorMatrixSettings={colorMatrixSettings}
+                    colorimetrySettings={colorimetrySettings}
                     videoInfo={videoInfo}
                     filterTemplates={filterTemplates}
                     filters={filters}
@@ -836,7 +836,7 @@ function App() {
                       setShowImportModal(true);
                     }}
                     onManageModels={() => setShowModelManager(true)}
-                    onColorMatrixChange={handleColorMatrixChange}
+                    onColorimetryChange={handleColorimetryChange}
                     onFiltersChange={handleSetFilters}
                     onSaveTemplate={saveTemplate}
                     onDeleteTemplate={deleteTemplate}

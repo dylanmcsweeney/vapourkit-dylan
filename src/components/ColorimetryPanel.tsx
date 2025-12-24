@@ -1,23 +1,21 @@
-// c:\Users\mystery\Projects\SELL\TSPAN-GUI\src\components\ColorMatrixPanel.tsx
-
-// src/components/ColorMatrixPanel.tsx
+// src/components/ColorimetryPanel.tsx
 import { useState } from 'react';
 import { Palette, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
-import type { ColorMatrixSettings, VideoInfo } from '../electron';
+import type { ColorimetrySettings, VideoInfo } from '../electron';
 
-interface ColorMatrixPanelProps {
-  settings: ColorMatrixSettings;
+interface ColorimetryPanelProps {
+  settings: ColorimetrySettings;
   isProcessing: boolean;
   videoInfo: VideoInfo | null;
-  onSettingsChange: (settings: ColorMatrixSettings) => void;
+  onSettingsChange: (settings: ColorimetrySettings) => void;
 }
 
-export function ColorMatrixPanel({
+export function ColorimetryPanel({
   settings,
   isProcessing,
   videoInfo,
   onSettingsChange,
-}: ColorMatrixPanelProps) {
+}: ColorimetryPanelProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Check if video format is RGB
@@ -44,7 +42,7 @@ export function ColorMatrixPanel({
           disabled={!settings.overwriteMatrix || isRgbFormat}
         >
           <Palette className="w-4 h-4 text-accent-cyan" />
-          <h3 className="text-base font-semibold">Color Matrix</h3>
+          <h3 className="text-base font-semibold">Colorimetry</h3>
           {settings.overwriteMatrix && !isRgbFormat && (
             <span className="text-sm text-accent-cyan bg-accent-cyan/10 px-2 py-0.5 rounded">
               {settings.matrix709 ? 'BT.709' : 'BT.601'}
@@ -55,7 +53,7 @@ export function ColorMatrixPanel({
         <div className="flex items-center gap-2 ml-2">
           <input
             type="checkbox"
-            id="color-matrix-override"
+            id="colorimetry-override"
             checked={settings.overwriteMatrix && !isRgbFormat}
             onChange={(e) => handleCheckboxChange(e.target.checked)}
             disabled={isProcessing || isRgbFormat}
@@ -70,7 +68,7 @@ export function ColorMatrixPanel({
           <div className="flex items-start gap-2 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
             <AlertTriangle className="w-4 h-4 text-yellow-500 flex-shrink-0 mt-0.5" />
             <p className="text-sm text-yellow-500">
-              Color matrix override is not available for RGB video formats
+              Colorimetry override is not available for RGB video formats
             </p>
           </div>
         </div>

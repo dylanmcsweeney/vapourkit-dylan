@@ -10,20 +10,20 @@ import { VsMlrtManager } from './vsMlrtManager';
  * Registers all configuration-related IPC handlers
  */
 export function registerConfigHandlers(mainWindow: BrowserWindow | null) {
-  ipcMain.handle('get-color-matrix-settings', async () => {
-    const settings = configManager.getColorMatrixSettings();
+  ipcMain.handle('get-colorimetry-settings', async () => {
+    const settings = configManager.getColorimetrySettings();
     return settings;
   });
 
-  ipcMain.handle('set-color-matrix-settings', async (event, settings: { 
+  ipcMain.handle('set-colorimetry-settings', async (event, settings: { 
     overwriteMatrix: boolean; 
     matrix709: boolean; 
     defaultMatrix: '709' | '170m'; 
     defaultPrimaries: '709' | '601'; 
     defaultTransfer: '709' | '170m' 
   }) => {
-    logger.info(`Setting color matrix: overwrite=${settings.overwriteMatrix}, matrix709=${settings.matrix709}, default=${settings.defaultMatrix}`);
-    await configManager.setColorMatrixSettings(settings);
+    logger.info(`Setting colorimetry: overwrite=${settings.overwriteMatrix}, matrix709=${settings.matrix709}, default=${settings.defaultMatrix}`);
+    await configManager.setColorimetrySettings(settings);
     return { success: true };
   });
 

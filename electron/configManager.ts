@@ -20,7 +20,7 @@ interface Filter {
 }
 
 interface AppConfig {
-  colorMatrix?: {
+  colorimetry?: {
     overwriteMatrix: boolean;
     matrix709: boolean;
     defaultMatrix: '709' | '170m';
@@ -56,7 +56,7 @@ interface AppConfig {
 const CONFIG_FILE = path.join(PATHS.CONFIG, 'app-config.json');
 
 const DEFAULT_CONFIG: AppConfig = {
-  colorMatrix: {
+  colorimetry: {
     overwriteMatrix: false,
     matrix709: false,
     defaultMatrix: '709',
@@ -169,12 +169,12 @@ export class ConfigManager {
     return metadata?.modelType || 'image';
   }
 
-  getColorMatrixSettings(): { overwriteMatrix: boolean; matrix709: boolean; defaultMatrix: '709' | '170m'; defaultPrimaries: '709' | '601'; defaultTransfer: '709' | '170m' } {
-    return this.config.colorMatrix || DEFAULT_CONFIG.colorMatrix!;
+  getColorimetrySettings(): { overwriteMatrix: boolean; matrix709: boolean; defaultMatrix: '709' | '170m'; defaultPrimaries: '709' | '601'; defaultTransfer: '709' | '170m' } {
+    return this.config.colorimetry || DEFAULT_CONFIG.colorimetry!;
   }
 
-  async setColorMatrixSettings(settings: { overwriteMatrix: boolean; matrix709: boolean; defaultMatrix: '709' | '170m'; defaultPrimaries: '709' | '601'; defaultTransfer: '709' | '170m' }): Promise<void> {
-    this.config.colorMatrix = settings;
+  async setColorimetrySettings(settings: { overwriteMatrix: boolean; matrix709: boolean; defaultMatrix: '709' | '170m'; defaultPrimaries: '709' | '601'; defaultTransfer: '709' | '170m' }): Promise<void> {
+    this.config.colorimetry = settings;
     await this.save();
   }
 

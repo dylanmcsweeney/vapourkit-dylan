@@ -1,20 +1,20 @@
-import type { ModelFile, ColorMatrixSettings, FilterTemplate, VideoInfo, Filter } from '../electron.d';
+import type { ModelFile, ColorimetrySettings, FilterTemplate, VideoInfo, Filter } from '../electron.d';
 import { DynamicFilterPanel } from './DynamicFilterPanel';
-import { ColorMatrixPanel } from './ColorMatrixPanel';
+import { ColorimetryPanel } from './ColorimetryPanel';
 import { SegmentSelector, type SegmentSelection } from './SegmentSelector';
 
 interface ModelSelectionPanelProps {
   filteredModels: ModelFile[];
   isProcessing: boolean;
   useDirectML: boolean;
-  colorMatrixSettings: ColorMatrixSettings;
+  colorimetrySettings: ColorimetrySettings;
   videoInfo: VideoInfo | null;
   filterTemplates: FilterTemplate[];
   filters: Filter[];
   segment?: SegmentSelection;
   onImportClick: () => void;
   onManageModels?: () => void;
-  onColorMatrixChange: (settings: ColorMatrixSettings) => void;
+  onColorimetryChange: (settings: ColorimetrySettings) => void;
   onFiltersChange: (filters: Filter[]) => void;
   onSaveTemplate?: (template: FilterTemplate) => Promise<boolean>;
   onDeleteTemplate?: (name: string) => Promise<boolean>;
@@ -26,12 +26,12 @@ export function ModelSelectionPanel({
   filteredModels,
   isProcessing,
   useDirectML,
-  colorMatrixSettings,
+  colorimetrySettings,
   videoInfo,
   filterTemplates,
   filters,
   segment,
-  onColorMatrixChange,
+  onColorimetryChange,
   onFiltersChange,
   onSaveTemplate,
   onDeleteTemplate,
@@ -42,12 +42,12 @@ export function ModelSelectionPanel({
 }: ModelSelectionPanelProps) {
   return (
     <>
-      {/* Color Matrix Panel */}
-      <ColorMatrixPanel
-        settings={colorMatrixSettings}
+      {/* Colorimetry Panel */}
+      <ColorimetryPanel
+        settings={colorimetrySettings}
         isProcessing={isProcessing}
         videoInfo={videoInfo}
-        onSettingsChange={onColorMatrixChange}
+        onSettingsChange={onColorimetryChange}
       />
 
       {/* Segment Selector */}

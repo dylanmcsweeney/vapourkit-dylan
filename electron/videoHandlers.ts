@@ -592,7 +592,7 @@ function createScriptConfig(
     }];
   }
   
-  const colorMatrixSettings = configManager.getColorMatrixSettings();
+  const colorimetrySettings = configManager.getColorimetrySettings();
   const processingFormat = configManager.getProcessingFormat();
   const outputFormat = processingFormat === 'match_input' ? 'original_clip.format.id' : processingFormat;
   
@@ -604,7 +604,7 @@ function createScriptConfig(
     useFp32: useFp32,
     modelType: modelType,
     upscalingEnabled: isUpscaling,
-    colorMatrix: colorMatrixSettings,
+    colorimetry: colorimetrySettings,
     filters: filters,
     numStreams: numStreams,
     outputFormat: outputFormat,

@@ -3,6 +3,8 @@
 ## 0.12.2
 - Fix BF16 engine names (previously appended _fp16 when it's _bf16)
 - Remove unused code
+- Hide Validate button during processing
+- Rename Color Matrix to Colorimetry as it does more than the name implies
 
 ## 0.12.1
 - Overhaul validation method. It will no longer automatically run in the background, instead you must manually run it if desired

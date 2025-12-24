@@ -79,9 +79,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return () => ipcRenderer.removeListener('dev-console-log', listener);
   },
   
-  // Color matrix settings
-  getColorMatrixSettings: () => ipcRenderer.invoke('get-color-matrix-settings'),
-  setColorMatrixSettings: (settings: any) => ipcRenderer.invoke('set-color-matrix-settings', settings),
+  // Colorimetry settings
+  getColorimetrySettings: () => ipcRenderer.invoke('get-colorimetry-settings'),
+  setColorimetrySettings: (settings: any) => ipcRenderer.invoke('set-colorimetry-settings', settings),
   
   // FFmpeg configuration
   getFfmpegArgs: () => ipcRenderer.invoke('get-ffmpeg-args'),
